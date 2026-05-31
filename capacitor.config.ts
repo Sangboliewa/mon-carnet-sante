@@ -1,22 +1,17 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-const isProd = process.env.CAPACITOR_ENV === "production";
+// URL de production Vercel — l'APK pointe toujours vers ce serveur
+const PROD_URL = "https://mon-carnet-sante-git-master-sangboliewas-projects.vercel.app";
 
 const config: CapacitorConfig = {
   appId: "com.moncarnetsante.app",
   appName: "Mon Carnet Santé",
   webDir: "out",
 
-  // En développement : pointe vers le serveur Next.js local
-  // En production  : les fichiers sont bundlés dans webDir (export statique)
-  ...(isProd
-    ? {}
-    : {
-        server: {
-          url: "http://10.157.240.92:3000",
-          cleartext: true,
-        },
-      }),
+  server: {
+    url: PROD_URL,
+    cleartext: false,
+  },
 
   android: {
     buildOptions: {
