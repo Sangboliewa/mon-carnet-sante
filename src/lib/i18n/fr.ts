@@ -1,5 +1,4 @@
 const fr = {
-  // Navigation
   nav: {
     home: "Accueil",
     health: "Santé",
@@ -7,8 +6,6 @@ const fr = {
     emergency: "Urgence",
     profile: "Profil",
   },
-
-  // Common
   common: {
     save: "Enregistrer",
     saving: "Enregistrement…",
@@ -32,16 +29,12 @@ const fr = {
     pending: "En attente",
     today: "Aujourd'hui",
     tomorrow: "Demain",
-    inDays: (n: number) => `Dans ${n} jour${n > 1 ? "s" : ""}`,
-    daysLate: (n: number) => `Retard de ${n} jour${n > 1 ? "s" : ""}`,
     notes: "Notes",
     date: "Date",
     time: "Heure",
     name: "Nom",
     type: "Type",
     status: "Statut",
-    actions: "Actions",
-    records: (n: number) => `${n} enregistrement${n > 1 ? "s" : ""}`,
     markDone: "Marquer effectué",
     markUndone: "Marquer non effectué",
     upcoming: "À venir",
@@ -52,11 +45,13 @@ const fr = {
     high: "Élevé",
     language: "Langue",
     offlineMode: "Mode hors-ligne",
-    offlineMessage: "Vous êtes hors ligne. Les données affichées peuvent ne pas être à jour.",
+    offlineMessage: "Vous êtes hors ligne. Données en cache affichées.",
     syncWhenOnline: "Synchronisation au retour en ligne.",
+    inDays: "Dans",
+    days: "jour(s)",
+    lateBy: "Retard de",
+    records: "enregistrement(s)",
   },
-
-  // Auth
   auth: {
     login: "Connexion",
     logout: "Déconnexion",
@@ -73,22 +68,19 @@ const fr = {
     loggingIn: "Connexion…",
     creatingAccount: "Création…",
   },
-
-  // Dashboard
   dashboard: {
     greeting: "Bonjour,",
     activeProfile: "Profil actif",
     quickAccess: "Accès rapides",
     reminders: "Rappels — 30 prochains jours",
-    activeТreatments: "Traitements en cours",
+    activeTreatments: "Traitements en cours",
     severeAllergies: "Allergies graves",
     bloodType: "Groupe sanguin",
-    familyProfiles: (n: number) => `${n} profil${n > 1 ? "s" : ""}`,
     addFamily: "+ Famille",
-    documents: (n: number) => `${n} document${n > 1 ? "s" : ""}`,
+    edit: "Modifier",
+    profiles: "profil(s)",
+    documents: "document(s)",
   },
-
-  // Profile
   profile: {
     title: "Profil",
     identity: "Identité",
@@ -108,8 +100,6 @@ const fr = {
     saveButton: "Enregistrer le profil",
     saved: "✓ Profil mis à jour avec succès",
   },
-
-  // Medical records
   antecedents: {
     title: "Antécédents médicaux",
     allergies: "Allergies",
@@ -120,8 +110,6 @@ const fr = {
     menstrual: "Suivi des menstrues",
     pregnancy: "Suivi de grossesse",
   },
-
-  // Vaccinations
   vaccins: {
     title: "Vaccinations",
     addVaccine: "+ Ajouter un vaccin",
@@ -140,10 +128,8 @@ const fr = {
     upcomingReminders: "Rappels à venir (30 jours)",
     noVaccinations: "Aucune vaccination enregistrée.",
     overdue: "En retard",
-    inDays: (n: number) => `Rappel dans ${n}j`,
+    reminderIn: "Rappel dans",
   },
-
-  // Consultations
   consultations: {
     title: "Consultations",
     addConsultation: "+ Ajouter une consultation",
@@ -158,8 +144,6 @@ const fr = {
     upcomingFollowUps: "Consultations de suivi à venir",
     noConsultations: "Aucune consultation enregistrée.",
   },
-
-  // Medication reminders
   rappels: {
     title: "Rappels médicaments",
     addReminder: "+ Ajouter un rappel",
@@ -177,8 +161,6 @@ const fr = {
     reactivate: "Réactiver",
     until: "Jusqu'au",
   },
-
-  // Symptoms
   symptomes: {
     title: "Journal des symptômes",
     todayJournal: "Journal d'aujourd'hui",
@@ -193,10 +175,7 @@ const fr = {
     exhausted: "Épuisé(e)",
     noLogs: "Commencez votre journal de symptômes dès aujourd'hui.",
     last14Days: "14 derniers jours",
-    duration: "Durée",
   },
-
-  // Agenda
   agenda: {
     title: "Agenda santé",
     addAppointment: "+ Ajouter un rendez-vous",
@@ -212,8 +191,6 @@ const fr = {
     noAppointments: "Aucun rendez-vous enregistré.",
     markDone: "Marquer effectué",
   },
-
-  // Lab results
   labResults: {
     title: "Résultats de labo",
     addResult: "+ Saisir un résultat",
@@ -229,8 +206,6 @@ const fr = {
     noResults: "Aucun résultat enregistré.",
     norm: "Norme",
   },
-
-  // Vitals
   vitals: {
     title: "Mesures vitales",
     lastMeasure: "Dernière mesure",
@@ -250,8 +225,6 @@ const fr = {
     obese: "Obésité",
     noMeasures: "Aucune mesure enregistrée.",
   },
-
-  // Menstrual
   menstrual: {
     title: "Suivi des menstrues",
     addCycle: "+ Ajouter un cycle",
@@ -264,17 +237,16 @@ const fr = {
     veryHeavy: "Très abondante",
     symptoms: "Symptômes",
     nextCycle: "Prochain cycle prévu",
-    calculatedOn: (n: number) => `Calculé sur les ${n} derniers cycles`,
+    basedOnCycles: "Calculé sur les derniers cycles",
     duration: "Durée",
     ongoing: "En cours",
     noCycles: "Aucun cycle enregistré.",
   },
-
-  // Pregnancy
   pregnancy: {
     title: "Suivi de grossesse",
     ongoing: "Grossesse en cours",
-    weeks: "semaines",
+    weeks: "SA",
+    weeksLabel: "semaines",
     dueDate: "Date prévue d'accouchement",
     lmpDate: "Date des dernières règles (DDR)",
     expectedDueDate: "Date prévue d'accouchement (DPA)",
@@ -295,8 +267,6 @@ const fr = {
     noConsultations: "Aucune consultation enregistrée.",
     calculatedAuto: "Calculée automatiquement",
   },
-
-  // Pediatric
   pediatric: {
     title: "Suivi pédiatrique",
     growth: "Croissance",
@@ -307,24 +277,20 @@ const fr = {
     weight: "Poids (kg)",
     headCirc: "PC (cm)",
     age: "Âge actuel",
-    months: (n: number) => `${n} mois`,
-    years: (n: number) => `${n} ans`,
+    months: "mois",
+    years: "ans",
     pevNote: "Calendrier PEV recommandé par l'OMS / Côte d'Ivoire.",
     noMeasures: "Aucune mesure enregistrée.",
   },
-
-  // Structures
   structures: {
     title: "Structures de santé",
     search: "Rechercher une structure…",
-    found: (n: number) => `${n} structure${n > 1 ? "s" : ""} trouvée${n > 1 ? "s" : ""}`,
+    found: "structure(s) trouvée(s)",
     emergencyOnly: "Urgences",
     allTypes: "Tous",
     allCities: "Toutes",
     call: "Appeler",
   },
-
-  // Family
   family: {
     title: "Famille",
     subtitle: "Gérer les profils",
@@ -337,32 +303,17 @@ const fr = {
     viewer: "Lecteur",
     info: "Gérez les profils de votre famille. Chaque profil a son propre carnet de santé indépendant.",
   },
-
-  // Export
   export: {
     title: "Export PDF",
     print: "Imprimer / Enregistrer en PDF",
     healthRecord: "Carnet de Santé",
     exportedOn: "Exporté le",
     personalInfo: "Informations personnelles",
-    allergies: "Allergies",
-    conditions: "Antécédents médicaux",
-    treatments: "Traitements en cours",
-    vaccinations: "Vaccinations",
-    recentConsultations: "Consultations récentes",
-    labResults: "Résultats de laboratoire",
     confidential: "Confidentiel",
     fullName: "Nom complet",
     dateOfBirth: "Date de naissance",
-    gender: "Genre",
     bloodType: "Groupe sanguin",
-    height: "Taille",
-    weight: "Poids",
-    emergencyContact: "Contact urgence",
-    emergencyPhone: "Tél. urgence",
   },
-
-  // Emergency
   emergency: {
     title: "Carte d'urgence",
     subtitle: "Information pour les secours",
@@ -374,11 +325,8 @@ const fr = {
     treatments: "Traitements actifs",
     conditions: "Pathologies",
     scanQR: "Scanner pour accéder aux données d'urgence",
-    qrContains: "Le QR code encode : identité, groupe sanguin, allergies graves, traitements, contact d'urgence",
     demoNote: "🔒 Version de démonstration — données fictives.",
   },
-
-  // Sharing
   sharing: {
     title: "Partage",
     createLink: "🔗 Créer un lien de partage",
@@ -392,21 +340,15 @@ const fr = {
     copyLink: "📋 Copier le lien",
     activeLinks: "Liens actifs",
     expires: "Expire",
-    accessCount: "Accès",
     revoke: "Révoquer",
     revoking: "Révocation…",
     expired: "Expiré",
     noLinks: "Aucun lien de partage actif.",
   },
-
-  // Offline
   offline: {
     banner: "Hors ligne — données en cache",
-    syncPending: "En attente de synchronisation",
-    lastSync: "Dernière synchro",
-    cachedData: "Données en cache",
+    cachedData: "Données en cache (mode hors-ligne)",
   },
-} as const;
+};
 
 export default fr;
-export type TranslationKeys = typeof fr;

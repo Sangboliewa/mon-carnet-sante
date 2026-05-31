@@ -16,10 +16,10 @@ function getReminderStatus(nextDoseDate: string | null, t: ReturnType<typeof use
   const today = new Date(); today.setHours(0,0,0,0);
   const next = new Date(nextDoseDate);
   const diffDays = Math.round((next.getTime() - today.getTime()) / 86400000);
-  if (diffDays < 0)  return { label: t.vaccins.overdue,          className: "bg-red-100 text-red-800" };
-  if (diffDays <= 7) return { label: t.vaccins.inDays(diffDays), className: "bg-orange-100 text-orange-800" };
-  if (diffDays <= 30)return { label: t.vaccins.inDays(diffDays), className: "bg-yellow-100 text-yellow-800" };
-  return { label: t.vaccins.reminderPlanned,                     className: "bg-green-100 text-green-800" };
+  if (diffDays < 0)  return { label: t.vaccins.overdue,                          className: "bg-red-100 text-red-800" };
+  if (diffDays <= 7) return { label: `${t.vaccins.reminderIn} ${diffDays}j`,     className: "bg-orange-100 text-orange-800" };
+  if (diffDays <= 30)return { label: `${t.vaccins.reminderIn} ${diffDays}j`,     className: "bg-yellow-100 text-yellow-800" };
+  return { label: t.vaccins.reminderPlanned,                                      className: "bg-green-100 text-green-800" };
 }
 
 interface Props { personId: string; initialData: Vaccination[] }

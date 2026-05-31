@@ -6,7 +6,6 @@ const en = {
     emergency: "Emergency",
     profile: "Profile",
   },
-
   common: {
     save: "Save",
     saving: "Saving…",
@@ -30,16 +29,12 @@ const en = {
     pending: "Pending",
     today: "Today",
     tomorrow: "Tomorrow",
-    inDays: (n: number) => `In ${n} day${n > 1 ? "s" : ""}`,
-    daysLate: (n: number) => `${n} day${n > 1 ? "s" : ""} late`,
     notes: "Notes",
     date: "Date",
     time: "Time",
     name: "Name",
     type: "Type",
     status: "Status",
-    actions: "Actions",
-    records: (n: number) => `${n} record${n > 1 ? "s" : ""}`,
     markDone: "Mark as done",
     markUndone: "Mark as not done",
     upcoming: "Upcoming",
@@ -50,10 +45,13 @@ const en = {
     high: "High",
     language: "Language",
     offlineMode: "Offline mode",
-    offlineMessage: "You are offline. Displayed data may not be up to date.",
+    offlineMessage: "You are offline. Showing cached data.",
     syncWhenOnline: "Will sync when back online.",
+    inDays: "In",
+    days: "day(s)",
+    lateBy: "Late by",
+    records: "record(s)",
   },
-
   auth: {
     login: "Sign in",
     logout: "Sign out",
@@ -70,20 +68,19 @@ const en = {
     loggingIn: "Signing in…",
     creatingAccount: "Creating…",
   },
-
   dashboard: {
     greeting: "Hello,",
     activeProfile: "Active profile",
     quickAccess: "Quick access",
     reminders: "Reminders — next 30 days",
-    activeТreatments: "Active treatments",
+    activeTreatments: "Active treatments",
     severeAllergies: "Severe allergies",
     bloodType: "Blood type",
-    familyProfiles: (n: number) => `${n} profile${n > 1 ? "s" : ""}`,
     addFamily: "+ Family",
-    documents: (n: number) => `${n} document${n > 1 ? "s" : ""}`,
+    edit: "Edit",
+    profiles: "profile(s)",
+    documents: "document(s)",
   },
-
   profile: {
     title: "Profile",
     identity: "Identity",
@@ -103,7 +100,6 @@ const en = {
     saveButton: "Save profile",
     saved: "✓ Profile updated successfully",
   },
-
   antecedents: {
     title: "Medical history",
     allergies: "Allergies",
@@ -114,7 +110,6 @@ const en = {
     menstrual: "Menstrual tracking",
     pregnancy: "Pregnancy tracking",
   },
-
   vaccins: {
     title: "Vaccinations",
     addVaccine: "+ Add vaccine",
@@ -133,9 +128,8 @@ const en = {
     upcomingReminders: "Upcoming reminders (30 days)",
     noVaccinations: "No vaccinations recorded.",
     overdue: "Overdue",
-    inDays: (n: number) => `Booster in ${n}d`,
+    reminderIn: "Booster in",
   },
-
   consultations: {
     title: "Consultations",
     addConsultation: "+ Add consultation",
@@ -150,7 +144,6 @@ const en = {
     upcomingFollowUps: "Upcoming follow-ups",
     noConsultations: "No consultations recorded.",
   },
-
   rappels: {
     title: "Medication reminders",
     addReminder: "+ Add reminder",
@@ -168,7 +161,6 @@ const en = {
     reactivate: "Reactivate",
     until: "Until",
   },
-
   symptomes: {
     title: "Symptom journal",
     todayJournal: "Today's journal",
@@ -183,9 +175,7 @@ const en = {
     exhausted: "Exhausted",
     noLogs: "Start your symptom journal today.",
     last14Days: "Last 14 days",
-    duration: "Duration",
   },
-
   agenda: {
     title: "Health agenda",
     addAppointment: "+ Add appointment",
@@ -201,7 +191,6 @@ const en = {
     noAppointments: "No appointments recorded.",
     markDone: "Mark as done",
   },
-
   labResults: {
     title: "Lab results",
     addResult: "+ Add result",
@@ -217,7 +206,6 @@ const en = {
     noResults: "No results recorded.",
     norm: "Normal range",
   },
-
   vitals: {
     title: "Vital measurements",
     lastMeasure: "Last measurement",
@@ -237,7 +225,6 @@ const en = {
     obese: "Obese",
     noMeasures: "No measurements recorded.",
   },
-
   menstrual: {
     title: "Menstrual tracking",
     addCycle: "+ Add cycle",
@@ -250,16 +237,16 @@ const en = {
     veryHeavy: "Very heavy",
     symptoms: "Symptoms",
     nextCycle: "Next predicted cycle",
-    calculatedOn: (n: number) => `Based on last ${n} cycle${n > 1 ? "s" : ""}`,
+    basedOnCycles: "Based on recent cycles",
     duration: "Duration",
     ongoing: "Ongoing",
     noCycles: "No cycles recorded.",
   },
-
   pregnancy: {
     title: "Pregnancy tracking",
     ongoing: "Ongoing pregnancy",
-    weeks: "weeks",
+    weeks: "WA",
+    weeksLabel: "weeks",
     dueDate: "Expected due date",
     lmpDate: "Last menstrual period (LMP)",
     expectedDueDate: "Expected due date (EDD)",
@@ -280,7 +267,6 @@ const en = {
     noConsultations: "No consultations recorded.",
     calculatedAuto: "Calculated automatically",
   },
-
   pediatric: {
     title: "Pediatric tracking",
     growth: "Growth",
@@ -291,22 +277,20 @@ const en = {
     weight: "Weight (kg)",
     headCirc: "HC (cm)",
     age: "Current age",
-    months: (n: number) => `${n} month${n > 1 ? "s" : ""}`,
-    years: (n: number) => `${n} year${n > 1 ? "s" : ""}`,
+    months: "months",
+    years: "years",
     pevNote: "EPI schedule recommended by WHO / Côte d'Ivoire.",
     noMeasures: "No measurements recorded.",
   },
-
   structures: {
     title: "Health facilities",
     search: "Search a facility…",
-    found: (n: number) => `${n} facilit${n > 1 ? "ies" : "y"} found`,
+    found: "facilit(y/ies) found",
     emergencyOnly: "Emergency",
     allTypes: "All",
     allCities: "All cities",
     call: "Call",
   },
-
   family: {
     title: "Family",
     subtitle: "Manage profiles",
@@ -319,30 +303,17 @@ const en = {
     viewer: "Viewer",
     info: "Manage your family profiles. Each profile has its own independent health record.",
   },
-
   export: {
     title: "PDF Export",
     print: "Print / Save as PDF",
     healthRecord: "Health Record",
     exportedOn: "Exported on",
     personalInfo: "Personal information",
-    allergies: "Allergies",
-    conditions: "Medical history",
-    treatments: "Active treatments",
-    vaccinations: "Vaccinations",
-    recentConsultations: "Recent consultations",
-    labResults: "Laboratory results",
     confidential: "Confidential",
     fullName: "Full name",
     dateOfBirth: "Date of birth",
-    gender: "Gender",
     bloodType: "Blood type",
-    height: "Height",
-    weight: "Weight",
-    emergencyContact: "Emergency contact",
-    emergencyPhone: "Emergency phone",
   },
-
   emergency: {
     title: "Emergency card",
     subtitle: "Information for first responders",
@@ -354,10 +325,8 @@ const en = {
     treatments: "Active treatments",
     conditions: "Medical conditions",
     scanQR: "Scan to access emergency data",
-    qrContains: "QR code contains: identity, blood type, severe allergies, treatments, emergency contact",
     demoNote: "🔒 Demo version — fictitious data.",
   },
-
   sharing: {
     title: "Share",
     createLink: "🔗 Create sharing link",
@@ -371,19 +340,15 @@ const en = {
     copyLink: "📋 Copy link",
     activeLinks: "Active links",
     expires: "Expires",
-    accessCount: "Access count",
     revoke: "Revoke",
     revoking: "Revoking…",
     expired: "Expired",
     noLinks: "No active sharing links.",
   },
-
   offline: {
     banner: "Offline — cached data",
-    syncPending: "Pending synchronization",
-    lastSync: "Last sync",
-    cachedData: "Cached data",
+    cachedData: "Cached data (offline mode)",
   },
-} as const;
+};
 
 export default en;

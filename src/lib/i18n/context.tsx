@@ -4,8 +4,9 @@ import fr from "./fr";
 import en from "./en";
 
 export type Locale = "fr" | "en";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const TRANSLATIONS: Record<Locale, any> = { fr, en };
+export type Translations = typeof fr;
+
+const TRANSLATIONS: Record<Locale, Translations> = { fr, en };
 const COOKIE_NAME = "locale";
 
 function getCookieLocale(): Locale {
@@ -21,8 +22,7 @@ function setCookieLocale(locale: Locale) {
 
 interface I18nContextValue {
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: any;
+  t: Translations;
   setLocale: (l: Locale) => void;
 }
 
@@ -44,7 +44,7 @@ export function I18nProvider({
   useEffect(() => {
     const saved = getCookieLocale();
     if (saved !== locale) setLocaleState(saved);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);

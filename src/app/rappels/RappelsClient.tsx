@@ -7,24 +7,22 @@ import { saveToCache, loadFromCache, isOnline } from "@/lib/offline/cache";
 
 function todayStr() { return new Date().toISOString().split("T")[0]; }
 
-function nextOccurrence(timeStr: string, locale: string): { label: string; urgent: boolean } {
+function nextOccurrence(timeStr: string, todayWord: string, tomorrowWord: string): { label: string; urgent: boolean } {
   const [h, m] = timeStr.split(":").map(Number);
   const now = new Date();
   const target = new Date();
   target.setHours(h, m, 0, 0);
   if (target <= now) target.setDate(target.getDate() + 1);
   const diffMin = Math.round((target.getTime() - now.getTime()) / 60000);
-  const tomorrow = locale === "fr" ? "Demain" : "Tomorrow";
-  const todayWord = locale === "fr" ? "Aujourd'hui" : "Today";
-  if (diffMin < 60) return { label: locale === "fr" ? `Dans ${diffMin} min` : `In ${diffMin} min`, urgent: true };
-  if (diffMin < 120) return { label: locale === "fr" ? `Dans ${Math.round(diffMin/60)}h` : `In ${Math.round(diffMin/60)}h`, urgent: true };
-  return { label: target.getHours() === h ? todayWord : tomorrow, urgent: false };
+  if (diffMin < 60) return { label: `${diffMin} min`, urgent: true };
+  if (diffMin < 120) return { label: `${Math.round(diffMin / 60)}h`, urgent: true };
+  return { label: target.getHours() === h ? todayWord : tomorrowWord, urgent: false };
 }
 
 interface Props { personId: string; initialData: MedicationReminder[] }
 
 export default function RappelsClient({ personId, initialData }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [items, setItems] = useState<MedicationReminder[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [medName, setMedName] = useState("");
@@ -106,7 +104,7 @@ export default function RappelsClient({ personId, initialData }: Props) {
           <p className="text-sm font-semibold text-blue-800">{t.rappels.todaySchedule}</p>
           {active.flatMap(item =>
             item.reminder_times.map(tm => {
-              const { label, urgent } = nextOccurrence(tm, locale);
+              const { label, urgent } = nextOccurrence(tm, t.common.today, t.common.tomorrow);
               return (
                 <div key={`${item.id}-${tm}`} className="flex items-center justify-between">
                   <div>
