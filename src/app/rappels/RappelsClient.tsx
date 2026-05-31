@@ -1,0 +1,233 @@
+"use client";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import type { MedicationReminder, MedicationReminderInsert } from "@/lib/supabase/types";
+
+const DEFAULT_TIMES = ["08:00", "13:00", "20:00"];
+
+function todayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function nextOccurrence(timeStr: string): { label: string; urgent: boolean } {
+  const [h, m] = timeStr.split(":").map(Number);
+  const now = new Date();
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  const diffMin = Math.round((target.getTime() - now.getTime()) / 60000);
+  if (diffMin < 60) return { label: `Dans ${diffMin} min`, urgent: true };
+  if (diffMin < 120) return { label: `Dans ${Math.round(diffMin / 60)}h`, urgent: true };
+  return { label: target.getHours() === h ? "Aujourd'hui" : "Demain", urgent: false };
+}
+
+interface Props {
+  personId: string;
+  initialData: MedicationReminder[];
+}
+
+export default function RappelsClient({ personId, initialData }: Props) {
+  const [items, setItems] = useState<MedicationReminder[]>(initialData);
+  const [showForm, setShowForm] = useState(false);
+  const [medName, setMedName] = useState("");
+  const [dosage, setDosage] = useState("");
+  const [times, setTimes] = useState<string[]>(["08:00"]);
+  const [startDate, setStartDate] = useState(todayStr());
+  const [endDate, setEndDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  function addTime() {
+    setTimes((t) => [...t, "12:00"]);
+  }
+  function removeTime(i: number) {
+    setTimes((t) => t.filter((_, idx) => idx !== i));
+  }
+  function updateTime(i: number, val: string) {
+    setTimes((t) => t.map((v, idx) => (idx === i ? val : v)));
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!medName.trim() || !times.length) return;
+    setSaving(true);
+    const supabase = createClient();
+    const payload: MedicationReminderInsert = {
+      person_id: personId,
+      medication_name: medName.trim(),
+      dosage: dosage || null,
+      reminder_times: times,
+      active: true,
+      start_date: startDate || null,
+      end_date: endDate || null,
+      notes: notes || null,
+    };
+    const { data } = await supabase.from("medication_reminders").insert(payload).select().single();
+    setSaving(false);
+    if (data) {
+      setItems((prev) => [data, ...prev]);
+      setMedName(""); setDosage(""); setTimes(["08:00"]); setStartDate(todayStr()); setEndDate(""); setNotes("");
+      setShowForm(false);
+    }
+  }
+
+  async function handleToggle(item: MedicationReminder) {
+    setTogglingId(item.id);
+    const supabase = createClient();
+    const { data } = await supabase.from("medication_reminders").update({ active: !item.active }).eq("id", item.id).select().single();
+    if (data) setItems((prev) => prev.map((i) => (i.id === data.id ? data : i)));
+    setTogglingId(null);
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    const supabase = createClient();
+    await supabase.from("medication_reminders").delete().eq("id", id);
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    setDeletingId(null);
+  }
+
+  const active = items.filter((i) => i.active);
+  const inactive = items.filter((i) => !i.active);
+
+  return (
+    <div className="px-4 py-5 space-y-4">
+      {/* Planning du jour */}
+      {active.length > 0 && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-2">
+          <p className="text-sm font-semibold text-blue-800">Planning d&apos;aujourd&apos;hui</p>
+          {active.flatMap((item) =>
+            item.reminder_times.map((t) => {
+              const { label, urgent } = nextOccurrence(t);
+              return (
+                <div key={`${item.id}-${t}`} className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{item.medication_name}</p>
+                    <p className="text-xs text-gray-500">{item.dosage ?? ""} · {t}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${urgent ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })
+          ).sort((a, b) => {
+            const ta = (a.key as string).split("-").pop() ?? "";
+            const tb = (b.key as string).split("-").pop() ?? "";
+            return ta.localeCompare(tb);
+          })}
+        </div>
+      )}
+
+      <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
+        {showForm ? "Annuler" : "+ Ajouter un rappel"}
+      </button>
+
+      {showForm && (
+        <form onSubmit={handleAdd} className="card space-y-3">
+          <div>
+            <label className="label">Médicament *</label>
+            <input required className="input-field" value={medName} onChange={(e) => setMedName(e.target.value)} placeholder="ex : Metformine 500 mg" />
+          </div>
+          <div>
+            <label className="label">Dosage</label>
+            <input className="input-field" value={dosage} onChange={(e) => setDosage(e.target.value)} placeholder="ex : 1 comprimé" />
+          </div>
+          <div>
+            <label className="label">Horaires de prise</label>
+            <div className="space-y-2">
+              {times.map((t, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input type="time" className="input-field flex-1" value={t} onChange={(e) => updateTime(i, e.target.value)} />
+                  {times.length > 1 && (
+                    <button type="button" onClick={() => removeTime(i)} className="text-red-400 text-lg px-2">×</button>
+                  )}
+                </div>
+              ))}
+              {times.length < 6 && (
+                <button type="button" onClick={addTime} className="text-health-blue text-sm font-medium">+ Ajouter un horaire</button>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Début</label>
+              <input type="date" className="input-field" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Fin</label>
+              <input type="date" className="input-field" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label className="label">Notes</label>
+            <textarea className="input-field resize-none" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="ex : à prendre pendant le repas" />
+          </div>
+          <button type="submit" disabled={saving} className="btn-primary">
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </form>
+      )}
+
+      {items.length === 0 && !showForm && (
+        <div className="card text-center text-gray-500 py-8 text-sm">Aucun rappel configuré.</div>
+      )}
+
+      {active.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Actifs ({active.length})</p>
+          {active.map((item) => (
+            <div key={item.id} className="card space-y-1">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-semibold text-gray-900">{item.medication_name}</p>
+                  {item.dosage && <p className="text-sm text-gray-600">{item.dosage}</p>}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {item.reminder_times.map((t) => (
+                      <span key={t} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{t}</span>
+                    ))}
+                  </div>
+                  {item.end_date && <p className="text-xs text-gray-400 mt-0.5">Jusqu&apos;au {item.end_date}</p>}
+                </div>
+                <span className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
+              </div>
+              {item.notes && <p className="text-xs text-gray-500 italic">{item.notes}</p>}
+              <div className="flex gap-4 pt-1">
+                <button onClick={() => handleToggle(item)} disabled={togglingId === item.id} className="text-xs text-gray-500">
+                  {togglingId === item.id ? "…" : "Désactiver"}
+                </button>
+                <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-xs text-red-400">
+                  {deletingId === item.id ? "…" : "Supprimer"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {inactive.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Inactifs ({inactive.length})</p>
+          {inactive.map((item) => (
+            <div key={item.id} className="card opacity-50 space-y-1">
+              <div className="flex justify-between items-start">
+                <p className="font-semibold text-gray-700">{item.medication_name}</p>
+                <span className="w-2 h-2 rounded-full bg-gray-400 mt-1.5" />
+              </div>
+              <div className="flex gap-4">
+                <button onClick={() => handleToggle(item)} disabled={togglingId === item.id} className="text-xs text-health-blue">
+                  {togglingId === item.id ? "…" : "Réactiver"}
+                </button>
+                <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-xs text-red-400">
+                  {deletingId === item.id ? "…" : "Supprimer"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

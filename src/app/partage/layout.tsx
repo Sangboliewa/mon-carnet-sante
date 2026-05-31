@@ -1,0 +1,4 @@
+import AppShell from "@/components/AppShell";
+export default function PartageLayout({ children }: { children: React.ReactNode }) {
+  return <AppShell>{children}</AppShell>;
+}
