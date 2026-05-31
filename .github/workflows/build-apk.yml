@@ -26,7 +26,7 @@ jobs:
           cache: 'npm'
 
       # 4. Dépendances npm
-      - run: npm ci
+      - run: npm install --legacy-peer-deps
 
       # 5. Variables d'environnement Supabase
       - name: Créer .env.local
