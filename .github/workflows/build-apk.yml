@@ -34,18 +34,22 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.local
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env.local
 
-      # 6. Sync Capacitor (copie config dans le projet Android)
+      # 6. Créer les dossiers Android nécessaires (exclus du git)
+      - run: mkdir -p android/app/src/main/assets
+
+      # 7. Sync Capacitor (génère capacitor.config.json + plugins.json)
+      - run: npx cap copy android
       - run: npx cap sync android
 
-      # 7. Rendre gradlew exécutable
+      # 8. Rendre gradlew exécutable
       - run: chmod +x android/gradlew
 
-      # 8. Build APK debug (ne nécessite pas de keystore)
+      # 9. Build APK debug (ne nécessite pas de keystore)
       - name: Build APK debug
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
 
-      # 9. Upload l'APK comme artefact téléchargeable
+      # 10. Upload l'APK comme artefact téléchargeable
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
