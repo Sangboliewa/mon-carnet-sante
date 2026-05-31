@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
+import { I18nProvider, type Locale } from "@/lib/i18n/context";
+import OfflineBanner from "@/components/OfflineBanner";
 
 export const metadata: Metadata = {
   title: "Mon Carnet Santé",
@@ -18,14 +21,21 @@ export const viewport: Viewport = {
   themeColor: "#1E6FBF",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("locale")?.value;
+  const initialLocale: Locale = localeCookie === "en" ? "en" : "fr";
+
   return (
-    <html lang="fr">
+    <html lang={initialLocale}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
-        {children}
+        <I18nProvider initialLocale={initialLocale}>
+          <OfflineBanner />
+          {children}
+        </I18nProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `
