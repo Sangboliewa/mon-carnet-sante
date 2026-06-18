@@ -26,6 +26,7 @@ const PROTECTED_PATHS = [
   "/teleconsultation",
   "/parametres",
   "/activite",
+  "/sommeil",
 ];
 
 export async function middleware(request: NextRequest) {

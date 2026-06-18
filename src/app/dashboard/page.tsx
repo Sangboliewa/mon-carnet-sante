@@ -243,6 +243,7 @@ export default async function DashboardPage() {
             { href: "/teleconsultation", icon: "📹", label: "Téléconsult.", sub: "Consultations en ligne" },
             { href: "/documents", icon: "📁", label: "Coffre-fort", sub: `${docs?.length ?? 0} document(s)` },
             { href: "/activite", icon: "🏃", label: "Activité", sub: "Exercices & IMC" },
+            { href: "/sommeil", icon: "😴", label: "Sommeil", sub: "Journal de nuits" },
             { href: "/parametres", icon: "⚙️", label: "Paramètres", sub: "Compte & préférences" },
           ].map((item) => (
             <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:bg-gray-50">
