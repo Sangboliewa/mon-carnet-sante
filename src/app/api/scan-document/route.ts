@@ -1,14 +1,63 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Hobby plan: 10s max — Haiku est ~5x plus rapide que Sonnet pour OCR
+// Gemini est rapide (~2-3s) — bien dans le timeout Hobby de 10s
 export const maxDuration = 10;
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+const PROMPT = `Tu es un assistant médical. Analyse ce document médical (résultat d'examen, ordonnance, compte-rendu) et extrais les informations structurées.
+
+Réponds UNIQUEMENT avec un JSON valide (sans markdown, sans backtick, sans commentaire) ayant cette structure exacte :
+
+{
+  "document_type": "ordonnance",
+  "date": "YYYY-MM-DD ou null",
+  "medecin": "nom du médecin ou null",
+  "etablissement": "nom de l'établissement ou null",
+  "traitements": [
+    {
+      "medication_name": "nom du médicament",
+      "dosage": "dosage ou null",
+      "frequency": "fréquence ou null",
+      "duration": "durée ou null",
+      "notes": "instructions ou null"
+    }
+  ],
+  "resultats_labo": [
+    {
+      "test_name": "nom du test",
+      "category": "catégorie ou null",
+      "value": null,
+      "unit": "unité ou null",
+      "ref_min": null,
+      "ref_max": null,
+      "interpretation": "Normal ou Elevé ou Bas ou null"
+    }
+  ],
+  "maladies": [
+    {
+      "condition_name": "diagnostic",
+      "status": "active",
+      "notes": "détails ou null"
+    }
+  ],
+  "allergies": [
+    {
+      "allergen": "allergène",
+      "severity": "mild",
+      "reaction": "type de réaction ou null"
+    }
+  ],
+  "consultation": {
+    "reason": "motif ou null",
+    "diagnosis": "diagnostic ou null",
+    "notes": "observations ou null"
+  },
+  "resume": "Résumé en 1-2 phrases de ce que contient le document"
+}
+
+document_type doit être: ordonnance | resultat_labo | compte_rendu | autre
+Si une section est vide, mets un tableau vide []. Si un champ est inconnu, mets null.`;
 
 export async function POST(request: NextRequest) {
   // Auth check
@@ -33,8 +82,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json({ error: "Clé API manquante. Contactez l'administrateur." }, { status: 503 });
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: "Clé GEMINI_API_KEY manquante dans les variables d'environnement Vercel." }, { status: 503 });
   }
 
   // Parse multipart form
@@ -46,119 +96,73 @@ export async function POST(request: NextRequest) {
   }
 
   // Validate file type
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
   if (!allowed.includes(file.type)) {
-    return NextResponse.json({ error: "Format non supporté. Utilisez JPEG, PNG ou PDF." }, { status: 400 });
+    return NextResponse.json({ error: "Format non supporté. Utilisez JPEG ou PNG." }, { status: 400 });
   }
 
-  // Max 5MB
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: "Fichier trop volumineux (max 5 Mo)." }, { status: 400 });
+  // Max 4MB (Gemini inline limit)
+  if (file.size > 4 * 1024 * 1024) {
+    return NextResponse.json({ error: "Fichier trop volumineux (max 4 Mo)." }, { status: 400 });
   }
 
   // Convert to base64
   const buffer = await file.arrayBuffer();
   const base64 = Buffer.from(buffer).toString("base64");
-  const mediaType = file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif";
 
-  // Call Claude Vision
-  let message;
+  // Call Gemini 1.5 Flash (gratuit — 1500 req/jour)
+  let responseText: string;
   try {
-    message = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 1024,
-    messages: [
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: mediaType,
-              data: base64,
-            },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: file.type, data: base64 } },
+              { text: PROMPT },
+            ],
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 1024,
           },
-          {
-            type: "text",
-            text: `Tu es un assistant médical. Analyse ce document médical (résultat d'examen, ordonnance, compte-rendu) et extrais les informations structurées.
+        }),
+      }
+    );
 
-Réponds UNIQUEMENT avec un JSON valide (sans markdown, sans commentaire) ayant cette structure exacte :
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      return NextResponse.json({ error: "Erreur Gemini : " + errText.slice(0, 200) }, { status: 502 });
+    }
 
-{
-  "document_type": "ordonnance" | "resultat_labo" | "compte_rendu" | "autre",
-  "date": "YYYY-MM-DD ou null",
-  "medecin": "nom du médecin ou null",
-  "etablissement": "nom de l'établissement ou null",
-  "traitements": [
-    {
-      "medication_name": "nom du médicament",
-      "dosage": "dosage ou null",
-      "frequency": "fréquence ou null",
-      "duration": "durée ou null",
-      "notes": "instructions ou null"
-    }
-  ],
-  "resultats_labo": [
-    {
-      "test_name": "nom du test",
-      "category": "catégorie (NFS, Biochimie, etc.) ou null",
-      "value": valeur_numerique_ou_null,
-      "unit": "unité ou null",
-      "ref_min": valeur_min_ou_null,
-      "ref_max": valeur_max_ou_null,
-      "interpretation": "Normal / Elevé / Bas ou null"
-    }
-  ],
-  "maladies": [
-    {
-      "condition_name": "diagnostic ou maladie",
-      "status": "active" | "resolved" | null,
-      "notes": "détails ou null"
-    }
-  ],
-  "allergies": [
-    {
-      "allergen": "allergène",
-      "severity": "mild" | "moderate" | "severe" | "life_threatening" | null,
-      "reaction": "type de réaction ou null"
-    }
-  ],
-  "consultation": {
-    "reason": "motif de consultation ou null",
-    "diagnosis": "diagnostic ou null",
-    "notes": "observations ou null"
-  },
-  "resume": "Résumé en 1-2 phrases de ce que contient le document"
-}
+    const geminiJson = await geminiRes.json();
+    responseText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-Si une section est vide, mets un tableau vide []. Si un champ est inconnu, mets null. Extrais TOUTES les informations visibles.`,
-          },
-        ],
-      },
-    ],
-  });
+    if (!responseText) {
+      return NextResponse.json({ error: "Réponse vide de Gemini." }, { status: 502 });
+    }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erreur API";
-    return NextResponse.json({ error: "Erreur lors de l'analyse IA : " + msg }, { status: 502 });
+    const msg = err instanceof Error ? err.message : "Erreur réseau";
+    return NextResponse.json({ error: "Erreur lors de l'analyse : " + msg }, { status: 502 });
   }
 
-  const responseText = message.content[0].type === "text" ? message.content[0].text : "";
-
+  // Parse JSON from response
   let parsed;
   try {
     parsed = JSON.parse(responseText);
   } catch {
-    // Try to extract JSON from response if wrapped in markdown
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         parsed = JSON.parse(jsonMatch[0]);
       } catch {
-        return NextResponse.json({ error: "Impossible d'analyser le document." }, { status: 422 });
+        return NextResponse.json({ error: "Impossible d'analyser la réponse du document." }, { status: 422 });
       }
     } else {
-      return NextResponse.json({ error: "Impossible d'analyser le document." }, { status: 422 });
+      return NextResponse.json({ error: "Format de réponse inattendu." }, { status: 422 });
     }
   }
 
