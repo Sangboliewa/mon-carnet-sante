@@ -127,8 +127,12 @@ export default function FamilleClient({ userId, persons: initialPersons, activeP
     const supabase = createClient();
     const { error: err } = await supabase.from("persons").delete().eq("id", id);
     if (err) { setError(err.message); return; }
-    setList(prev => prev.filter(p => p.id !== id));
-    if (active === id) switchTo(list.find(p => p.id !== id)?.id ?? "");
+    const remaining = list.filter(p => p.id !== id);
+    setList(remaining);
+    if (active === id) {
+      const next = remaining[0];
+      if (next) switchTo(next.id);
+    }
   }
 
   return (

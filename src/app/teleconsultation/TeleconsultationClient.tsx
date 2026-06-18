@@ -95,7 +95,10 @@ export default function TeleconsultationClient() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError(null);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("Non authentifié"); setSaving(false); return; }
     const payload = {
+      user_id: user.id,
       teleconsult_date: form.teleconsult_date, doctor_name: form.doctor_name,
       specialty: form.specialty || null, platform: form.platform,
       meeting_url: form.meeting_url || null,

@@ -139,11 +139,13 @@ export default function SommeilClient({ personId }: Props) {
     const d = new Date(); d.setDate(d.getDate() - 7);
     return new Date(l.log_date) >= d;
   });
-  const avgHours = last7.length > 0
-    ? (last7.reduce((s, l) => s + (l.duration_min ?? 0), 0) / last7.length / 60).toFixed(1)
+  const last7WithDuration = last7.filter((l) => l.duration_min != null && l.duration_min > 0);
+  const avgHours = last7WithDuration.length > 0
+    ? (last7WithDuration.reduce((s, l) => s + l.duration_min!, 0) / last7WithDuration.length / 60).toFixed(1)
     : null;
-  const avgQuality = last7.length > 0
-    ? Math.round(last7.reduce((s, l) => s + (l.quality ?? 3), 0) / last7.length)
+  const last7WithQuality = last7.filter((l) => l.quality != null);
+  const avgQuality = last7WithQuality.length > 0
+    ? Math.round(last7WithQuality.reduce((s, l) => s + l.quality!, 0) / last7WithQuality.length)
     : null;
 
   function openAdd() {

@@ -118,7 +118,9 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
   async function handleDeleteAccount() {
     setDeleteLoading(true);
     const supabase = createClient();
-    // Delete persons (cascade will handle most data)
+    // Supprimer accès partagés puis profils (cascade supprime données médicales)
+    await supabase.from("person_access").delete().eq("user_id", userId);
+    await supabase.from("user_preferences").delete().eq("user_id", userId);
     await supabase.from("persons").delete().eq("created_by", userId);
     await supabase.auth.signOut();
     router.push("/login");
