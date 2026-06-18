@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.Gemini_API_KEY ?? process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "Clé GEMINI_API_KEY manquante dans les variables d'environnement Vercel." }, { status: 503 });
   }
