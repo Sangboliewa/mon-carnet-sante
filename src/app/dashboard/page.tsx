@@ -71,6 +71,17 @@ export default async function DashboardPage() {
       </div>
 
       <div className="px-4 py-5 space-y-4 -mt-2">
+        {/* Bannière création profil */}
+        {!person && (
+          <a href="/profil" className="block card bg-gradient-to-r from-health-blue to-indigo-600 text-white">
+            <p className="font-bold text-lg">👋 Bienvenue !</p>
+            <p className="text-sm text-blue-100 mt-1">Créez votre profil de santé pour accéder à toutes les fonctionnalités.</p>
+            <div className="mt-3 inline-block bg-white text-health-blue text-sm font-semibold px-4 py-2 rounded-xl">
+              Créer mon profil →
+            </div>
+          </a>
+        )}
+
         {/* Profil card + switcher famille */}
         {person && (
           <div className="card">

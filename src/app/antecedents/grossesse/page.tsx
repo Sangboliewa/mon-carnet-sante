@@ -13,7 +13,7 @@ export default async function GrossessePage() {
   const cookieStore = await cookies();
   const preferredId = cookieStore.get("active_person_id")?.value ?? null;
   const person = await getCurrentPerson(supabase, user.id, preferredId);
-  if (!person) redirect("/dashboard");
+  if (!person) redirect("/profil");
   if (person.gender !== "female") redirect("/antecedents");
 
   const { data: pregnancies } = await supabase

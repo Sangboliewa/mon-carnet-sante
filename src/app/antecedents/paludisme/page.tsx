@@ -13,7 +13,7 @@ export default async function PaludismePage() {
   const cookieStore = await cookies();
   const preferredId = cookieStore.get("active_person_id")?.value ?? null;
   const person = await getCurrentPerson(supabase, user.id, preferredId);
-  if (!person) redirect("/dashboard");
+  if (!person) redirect("/profil");
 
   const { data: episodes } = await supabase
     .from("malaria_episodes")

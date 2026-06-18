@@ -14,7 +14,7 @@ export default async function RappelsPage() {
   const cookieStore = await cookies();
   const preferredId = cookieStore.get("active_person_id")?.value ?? null;
   const person = await getCurrentPerson(supabase, user.id, preferredId);
-  if (!person) redirect("/dashboard");
+  if (!person) redirect("/profil");
 
   const { data: reminders } = await supabase
     .from("medication_reminders")

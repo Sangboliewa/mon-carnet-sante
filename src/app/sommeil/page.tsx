@@ -10,7 +10,7 @@ export default async function SommeilPage() {
   if (!user) redirect("/login");
 
   const person = await getCurrentPerson(supabase, user.id, null);
-  if (!person) redirect("/dashboard");
+  if (!person) redirect("/profil");
 
   return (
     <div>
