@@ -1,45 +1,63 @@
 "use client";
-import { Suspense } from "react";
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid_credentials: "Email ou mot de passe incorrect.",
+  missing_fields: "Veuillez remplir tous les champs.",
+};
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/dashboard";
+  const errorParam = searchParams.get("error");
+  const confirmParam = searchParams.get("confirm");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const serverError = errorParam ? (ERROR_MESSAGES[errorParam] ?? decodeURIComponent(errorParam)) : null;
+
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    if (!email || !password) return;
     setLoading(true);
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (authError) {
-      setError("Email ou mot de passe incorrect.");
-      return;
-    }
-    window.location.href = redirect;
+    // Submit as real HTML form POST — ensures WebView navigation cookie jar
+    // receives the Set-Cookie headers from the redirect response (Android fix)
+    formRef.current?.submit();
   }
 
   return (
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Connexion</h2>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-sm text-red-700">
-          {error}
+      {confirmParam && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-sm text-blue-700">
+          Compte créé. Vérifiez votre email pour confirmer, puis connectez-vous.
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {serverError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-sm text-red-700">
+          {serverError}
+        </div>
+      )}
+
+      {/* Real HTML form POST — action redirects to /dashboard with Set-Cookie */}
+      <form
+        ref={formRef}
+        method="POST"
+        action={`/api/auth/login?redirect=${encodeURIComponent(redirect)}`}
+        onSubmit={handleSubmit}
+        className="space-y-4"
+      >
+        {/* Hidden inputs carry React state values when form.submit() is called */}
+        <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="password" value={password} />
+
         <div>
           <label htmlFor="email" className="label">Adresse e-mail</label>
           <input
@@ -97,7 +115,7 @@ export default function LoginPage() {
       </p>
 
       <p className="text-center mt-4 text-xs text-gray-400">
-        🔒 Données fictives — Version de démonstration terrain
+        🔒 Données sécurisées — Mon Carnet Santé
       </p>
     </div>
   );
