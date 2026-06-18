@@ -68,9 +68,6 @@ export default async function DashboardPage() {
           </div>
           <LogoutButton />
         </div>
-        <p className="text-blue-100 text-xs mt-2 bg-blue-700/40 rounded-lg px-3 py-1 inline-block">
-          🔒 Mode démonstration — données fictives
-        </p>
       </div>
 
       <div className="px-4 py-5 space-y-4 -mt-2">
