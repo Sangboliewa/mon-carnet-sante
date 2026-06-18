@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -10,6 +11,7 @@ const GENDERS = [
 ];
 
 export default function CreateProfilForm() {
+  const router = useRouter();
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -72,8 +74,9 @@ export default function CreateProfilForm() {
     // 3. Définir comme profil actif via cookie
     document.cookie = `active_person_id=${newPerson.id}; path=/; max-age=31536000`;
 
-    // 4. Rediriger vers le dashboard
-    window.location.href = "/dashboard";
+    // 4. Navigation client-side (pas de rechargement complet — évite le cache WebView)
+    router.refresh();
+    router.push("/dashboard");
   }
 
   return (
