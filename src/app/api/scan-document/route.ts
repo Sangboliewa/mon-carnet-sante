@@ -26,71 +26,58 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-  const apiKey = process.env.Gemini_API_KEY ?? process.env.GEMINI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "Clé Gemini_API_KEY manquante sur Vercel." }, { status: 503 });
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "Clé GROQ_API_KEY manquante sur Vercel." }, { status: 503 });
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "Aucun fichier reçu" }, { status: 400 });
 
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
-  if (!allowed.includes(file.type)) return NextResponse.json({ error: "Format non supporté. Utilisez JPEG, PNG ou PDF." }, { status: 400 });
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowed.includes(file.type)) {
+    return NextResponse.json({ error: "Format non supporté. Utilisez JPEG ou PNG (PDF non supporté par ce modèle)." }, { status: 400 });
+  }
   if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: "Fichier trop volumineux (max 4 Mo)." }, { status: 400 });
 
   const buffer = await file.arrayBuffer();
   const base64 = Buffer.from(buffer).toString("base64");
-
-  // Essayer plusieurs modèles dans l'ordre
-  const models = [
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-002",
-    "gemini-1.5-flash-8b",
-    "gemini-2.0-flash-lite",
-  ];
+  const dataUrl = `data:${file.type};base64,${base64}`;
 
   let responseText = "";
-  let lastError = "";
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.2-11b-vision-preview",
+        max_tokens: 800,
+        temperature: 0.1,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: dataUrl } },
+            { type: "text", text: PROMPT },
+          ],
+        }],
+      }),
+    });
 
-  for (const model of models) {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inline_data: { mime_type: file.type, data: base64 } },
-                { text: PROMPT },
-              ],
-            }],
-            generationConfig: { temperature: 0.1, maxOutputTokens: 800 },
-          }),
-        }
-      );
-
-      if (res.status === 404) { lastError = `${model}: non disponible`; continue; }
-      if (res.status === 429) { lastError = `${model}: quota dépassé`; continue; }
-
-      if (!res.ok) {
-        const t = await res.text();
-        lastError = `${model}: ${t.slice(0, 100)}`;
-        continue;
-      }
-
-      const json = await res.json();
-      const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-      if (text) { responseText = text; break; }
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : "erreur réseau";
-      continue;
+    if (!res.ok) {
+      const errText = await res.text();
+      return NextResponse.json({ error: "Erreur Groq : " + errText.slice(0, 200) }, { status: 502 });
     }
+
+    const json = await res.json();
+    responseText = json?.choices?.[0]?.message?.content ?? "";
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erreur réseau";
+    return NextResponse.json({ error: "Erreur analyse : " + msg }, { status: 502 });
   }
 
-  if (!responseText) {
-    return NextResponse.json({ error: `Analyse impossible. ${lastError}` }, { status: 502 });
-  }
+  if (!responseText) return NextResponse.json({ error: "Réponse vide de l'IA." }, { status: 502 });
 
   let parsed;
   try {
@@ -101,7 +88,7 @@ export async function POST(request: NextRequest) {
       try { parsed = JSON.parse(jsonMatch[0]); }
       catch { return NextResponse.json({ error: "Format de réponse inattendu." }, { status: 422 }); }
     } else {
-      return NextResponse.json({ error: "Format de réponse inattendu." }, { status: 422 });
+      return NextResponse.json({ error: "Format inattendu." }, { status: 422 });
     }
   }
 
