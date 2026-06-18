@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { I18nProvider, type Locale } from "@/lib/i18n/context";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import OfflineBanner from "@/components/OfflineBanner";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -37,8 +38,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <I18nProvider initialLocale={initialLocale}>
-          <OfflineBanner />
-          {children}
+          <LanguageProvider>
+            <OfflineBanner />
+            {children}
+          </LanguageProvider>
         </I18nProvider>
         <script
           dangerouslySetInnerHTML={{

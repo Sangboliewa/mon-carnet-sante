@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n, type Locale } from "@/lib/i18n/context";
 
 interface Prefs {
   language: string;
@@ -69,6 +70,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 
 export default function ParametresClient({ userId, email, firstName, lastName, prefs: initialPrefs, appVersion }: Props) {
   const router = useRouter();
+  const { setLocale } = useI18n();
   const defaultPrefs: Prefs = {
     language: "fr", theme: "light",
     notif_reminders: true, notif_agenda: true,
@@ -89,6 +91,9 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
     setPrefs(next);
     setSaving(true);
     setSaved(false);
+    if (key === "language" && (value === "fr" || value === "en")) {
+      setLocale(value as Locale);
+    }
     const supabase = createClient();
     await supabase.from("user_preferences").upsert({ user_id: userId, ...next });
     setSaving(false);
@@ -147,13 +152,22 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
       {/* Préférences */}
       <Section title="Préférences">
         <Row label="Langue">
-          <select
-            value={prefs.language}
-            onChange={(e) => savePref("language", e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-800"
-          >
-            {LANGUAGES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-          </select>
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => savePref("language", l.value)}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+                  prefs.language === l.value
+                    ? "bg-white text-health-blue shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {l.value.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </Row>
         <Row label="Thème">
           <select

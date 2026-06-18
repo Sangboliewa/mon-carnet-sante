@@ -6,6 +6,7 @@ import type { AllergyRow } from "@/lib/supabase/types";
 import { getCurrentPerson, getAllPersons } from "@/lib/getCurrentPerson";
 import LogoutButton from "./LogoutButton";
 import NotificationInit from "@/components/NotificationInit";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 function daysUntil(dateStr: string): number {
   const today = new Date();
@@ -66,7 +67,10 @@ export default async function DashboardPage() {
               {person?.first_name ?? user.email?.split("@")[0] ?? "Utilisateur"}
             </h1>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <LogoutButton />
+          </div>
         </div>
       </div>
 

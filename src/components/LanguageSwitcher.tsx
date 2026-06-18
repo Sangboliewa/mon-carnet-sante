@@ -1,24 +1,26 @@
 "use client";
-import { useI18n, type Locale } from "@/lib/i18n/context";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 export default function LanguageSwitcher() {
-  const { locale, setLocale } = useI18n();
-
+  const { lang, setLang } = useLang();
   return (
-    <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
-      {(["fr", "en"] as Locale[]).map((l) => (
-        <button
-          key={l}
-          onClick={() => setLocale(l)}
-          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
-            locale === l
-              ? "bg-white text-health-blue shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          {l.toUpperCase()}
-        </button>
-      ))}
+    <div className="flex items-center gap-1 bg-white/20 rounded-full px-1 py-0.5">
+      <button
+        onClick={() => setLang("fr")}
+        className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-all ${
+          lang === "fr" ? "bg-white text-health-blue" : "text-white/80"
+        }`}
+      >
+        FR
+      </button>
+      <button
+        onClick={() => setLang("en")}
+        className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-all ${
+          lang === "en" ? "bg-white text-health-blue" : "text-white/80"
+        }`}
+      >
+        EN
+      </button>
     </div>
   );
 }
