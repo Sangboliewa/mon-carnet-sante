@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentPerson } from "@/lib/getCurrentPerson";
 import PageHeader from "@/components/PageHeader";
 import ProfilForm from "./ProfilForm";
+import CreateProfilForm from "./CreateProfilForm";
 
 export default async function ProfilPage() {
   const supabase = await createServerSupabaseClient();
@@ -16,15 +17,13 @@ export default async function ProfilPage() {
 
   return (
     <div>
-      <PageHeader title="Mon Profil" subtitle="Informations personnelles de santé" />
+      <PageHeader
+        title={person ? "Mon Profil" : "Créer mon profil"}
+        subtitle={person ? "Informations personnelles de santé" : "Première connexion"}
+        back
+      />
       <div className="px-4 py-5">
-        {person ? (
-          <ProfilForm person={person} />
-        ) : (
-          <div className="card text-center text-gray-500 py-8">
-            <p>Aucun profil trouvé.</p>
-          </div>
-        )}
+        {person ? <ProfilForm person={person} /> : <CreateProfilForm />}
       </div>
     </div>
   );
