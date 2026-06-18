@@ -24,6 +24,7 @@ const PROTECTED_PATHS = [
   "/rappels/sms",
   "/nutrition",
   "/teleconsultation",
+  "/parametres",
 ];
 
 export async function middleware(request: NextRequest) {
