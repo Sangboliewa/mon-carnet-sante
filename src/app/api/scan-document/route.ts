@@ -96,9 +96,9 @@ export async function POST(request: NextRequest) {
   }
 
   // Validate file type
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
   if (!allowed.includes(file.type)) {
-    return NextResponse.json({ error: "Format non supporté. Utilisez JPEG ou PNG." }, { status: 400 });
+    return NextResponse.json({ error: "Format non supporté. Utilisez JPEG, PNG ou PDF." }, { status: 400 });
   }
 
   // Max 4MB (Gemini inline limit)

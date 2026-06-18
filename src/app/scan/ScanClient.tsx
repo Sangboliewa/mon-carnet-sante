@@ -194,7 +194,7 @@ export default function ScanClient({ personId }: Props) {
       {!result && (
         <div className="bg-white rounded-2xl shadow-sm p-4 space-y-3">
           <p className="text-sm text-gray-500 text-center">
-            Photographiez ou importez une ordonnance, un résultat d&apos;examen ou un compte-rendu
+            Photographiez ou importez une ordonnance, un résultat d&apos;examen ou un compte-rendu (JPEG, PNG, PDF)
           </p>
 
           {preview && (
@@ -226,7 +226,7 @@ export default function ScanClient({ personId }: Props) {
           </div>
 
           <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
-          <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={handleFileChange} />
+          <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" className="hidden" onChange={handleFileChange} />
 
           {file && (
             <button
