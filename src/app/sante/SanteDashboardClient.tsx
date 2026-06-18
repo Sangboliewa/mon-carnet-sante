@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import type { PersonRow, VitalMeasurement } from "@/lib/supabase/types";
 
 interface LabResult {
@@ -395,12 +396,12 @@ export default function SanteDashboardClient({ person, measurements, labResults,
 
       {/* CTAs */}
       <div className="grid grid-cols-2 gap-3">
-        <a href="/antecedents/mesures" className="block py-3 rounded-xl border border-blue-300 text-blue-700 text-sm font-medium text-center bg-blue-50">
+        <Link href="/antecedents/mesures" className="block py-3 rounded-xl border border-blue-300 text-blue-700 text-sm font-medium text-center bg-blue-50">
           + Mesure
-        </a>
-        <a href="/resultats-labo" className="block py-3 rounded-xl border border-purple-300 text-purple-700 text-sm font-medium text-center bg-purple-50">
+        </Link>
+        <Link href="/resultats-labo" className="block py-3 rounded-xl border border-purple-300 text-purple-700 text-sm font-medium text-center bg-purple-50">
           + Résultat labo
-        </a>
+        </Link>
       </div>
     </div>
   );

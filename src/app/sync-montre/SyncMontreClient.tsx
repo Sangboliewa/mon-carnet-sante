@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 interface Props {
@@ -277,12 +278,12 @@ export default function SyncMontreClient({ personId, personName }: Props) {
         <p className="text-sm font-semibold text-gray-900">📲 Données depuis votre montre aujourd'hui</p>
         <p className="text-xs text-gray-500">Saisissez directement le résumé affiché sur votre montre</p>
         <div className="flex gap-2 mt-2">
-          <a href="/activite" className="flex-1 text-center py-3 rounded-xl bg-health-blue-light text-health-blue text-sm font-semibold">
+          <Link href="/activite" className="flex-1 text-center py-3 rounded-xl bg-health-blue-light text-health-blue text-sm font-semibold">
             🏃 Activité
-          </a>
-          <a href="/sommeil" className="flex-1 text-center py-3 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-semibold">
+          </Link>
+          <Link href="/sommeil" className="flex-1 text-center py-3 rounded-xl bg-indigo-50 text-indigo-700 text-sm font-semibold">
             😴 Sommeil
-          </a>
+          </Link>
         </div>
       </div>
 
