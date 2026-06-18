@@ -245,8 +245,9 @@ export default function FamilleClient({ userId, persons: initialPersons, activeP
               <label className="label">Genre</label>
               <select name="gender" className="input-field" value={form.gender} onChange={handleChange}>
                 <option value="">—</option>
-                <option value="M">Masculin</option>
-                <option value="F">Féminin</option>
+                <option value="male">Masculin</option>
+                <option value="female">Féminin</option>
+                <option value="other">Autre</option>
               </select>
             </div>
             <div>
