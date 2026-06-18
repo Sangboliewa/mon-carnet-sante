@@ -1,7 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import StructuresClient from "./StructuresClient";
 
-export default function StructuresPage() {
+export default async function StructuresPage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   return (
     <div>
       <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-4 pt-12 pb-8">

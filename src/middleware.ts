@@ -27,6 +27,7 @@ const PROTECTED_PATHS = [
   "/parametres",
   "/activite",
   "/sommeil",
+  "/sync-montre",
 ];
 
 export async function middleware(request: NextRequest) {
