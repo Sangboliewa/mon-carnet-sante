@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -65,7 +65,7 @@ function SignupForm() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               className="input-field"
-              placeholder="Marie"
+              placeholder="Votre prénom"
             />
           </div>
           <div>
@@ -77,7 +77,7 @@ function SignupForm() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               className="input-field"
-              placeholder="Dupont"
+              placeholder="Votre nom"
             />
           </div>
         </div>

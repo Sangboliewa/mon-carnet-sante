@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Appointment, AppointmentInsert } from "@/lib/supabase/types";
@@ -133,7 +133,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
           </div>
           <div>
             <label className="label">Médecin</label>
-            <input name="doctor_name" className="input-field" value={form.doctor_name ?? ""} onChange={handleChange} placeholder="Dr. Konan" />
+            <input name="doctor_name" className="input-field" value={form.doctor_name ?? ""} onChange={handleChange} placeholder="Dr. Nom du médecin" />
           </div>
           <div>
             <label className="label">Lieu</label>

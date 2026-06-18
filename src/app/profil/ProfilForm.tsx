@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Person } from "@/lib/supabase/types";
@@ -132,7 +132,7 @@ export default function ProfilForm({ person }: Props) {
         <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Contact d&apos;urgence</h2>
         <div>
           <label className="label">Nom</label>
-          <input name="emergency_contact_name" className="input-field" value={form.emergency_contact_name} onChange={handleChange} placeholder="Jean Dupont" />
+          <input name="emergency_contact_name" className="input-field" value={form.emergency_contact_name} onChange={handleChange} placeholder="Nom complet" />
         </div>
         <div>
           <label className="label">Téléphone</label>

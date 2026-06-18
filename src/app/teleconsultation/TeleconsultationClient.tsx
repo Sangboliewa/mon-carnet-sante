@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
@@ -288,7 +288,7 @@ export default function TeleconsultationClient() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="label">Médecin *</label>
-                    <input type="text" name="doctor_name" required className="input-field" placeholder="Dr. Traoré"
+                    <input type="text" name="doctor_name" required className="input-field" placeholder="Dr. Nom du médecin"
                       value={form.doctor_name} onChange={handleChange} />
                   </div>
                   <div>

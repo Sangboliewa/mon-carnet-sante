@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Treatment, TreatmentInsert } from "@/lib/supabase/types";
@@ -100,7 +100,7 @@ export default function TraitementsClient({ personId, initialData }: Props) {
           </div>
           <div>
             <label className="label">Médecin prescripteur</label>
-            <input name="prescribing_doctor" className="input-field" value={form.prescribing_doctor ?? ""} onChange={handleChange} placeholder="Dr. Koné" />
+            <input name="prescribing_doctor" className="input-field" value={form.prescribing_doctor ?? ""} onChange={handleChange} placeholder="Dr. Nom du médecin" />
           </div>
           <div>
             <label className="label">Notes</label>
