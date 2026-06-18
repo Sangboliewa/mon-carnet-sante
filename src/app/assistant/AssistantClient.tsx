@@ -49,22 +49,17 @@ export default function AssistantClient({ personId, personName }: Props) {
         body: JSON.stringify({ messages: next, personId }),
       });
 
-      if (!res.ok || !res.body) throw new Error("Erreur serveur");
+      if (!res.ok) throw new Error("Erreur serveur");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      const reply = json.reply ?? "Je n'ai pas pu générer une réponse.";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { role: "assistant", content: full };
-          return updated;
-        });
-      }
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "assistant", content: reply };
+        return updated;
+      });
     } catch {
       setMessages(prev => {
         const updated = [...prev];
