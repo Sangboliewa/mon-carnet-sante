@@ -6,7 +6,7 @@ export interface PersonRow {
   id: string;
   created_by: string;
   first_name: string;
-  last_name: string;
+  last_name: string | null;
   date_of_birth: string | null;
   gender: string | null;
   blood_type: string | null;
@@ -15,6 +15,10 @@ export interface PersonRow {
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
   social_security_number_encrypted: string | null;
+  // Module Famille — nouveaux champs
+  relation: string | null;
+  nickname: string | null;
+  avatar_emoji: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -129,11 +133,20 @@ export interface SharedLinkRow {
   document_id: string | null;
   created_by: string;
   token: string;
+  token_hash: string | null;
   expires_at: string;
   access_count: number;
   max_access_count: number | null;
   revoked: boolean;
   created_at: string;
+}
+
+export interface ShareAccessLogRow {
+  id: string;
+  link_id: string;
+  accessed_at: string;
+  ip_address: string | null;
+  user_agent: string | null;
 }
 
 export interface LabResultRow {
@@ -289,7 +302,7 @@ export interface ConsentRow {
 export type PersonInsert = {
   created_by: string;
   first_name: string;
-  last_name: string;
+  last_name?: string | null;
   date_of_birth?: string | null;
   gender?: string | null;
   blood_type?: string | null;
@@ -298,6 +311,9 @@ export type PersonInsert = {
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
   social_security_number_encrypted?: string | null;
+  relation?: string | null;
+  nickname?: string | null;
+  avatar_emoji?: string | null;
 };
 
 export type PersonUpdate = Partial<Omit<PersonInsert, "created_by">>;
@@ -428,6 +444,65 @@ export type MedicalConsultationInsert = {
   notes?: string | null;
 };
 
+// ─── Paludisme ───────────────────────────────────────────────────────────────
+
+export interface MalariaEpisodeRow {
+  id: string;
+  person_id: string;
+  episode_date: string;
+  end_date: string | null;
+  fever: boolean;
+  fever_temp: number | null;
+  chills: boolean;
+  headache: boolean;
+  vomiting: boolean;
+  fatigue: boolean;
+  joint_pain: boolean;
+  sweating: boolean;
+  test_type: string | null;
+  test_result: string | null;
+  parasite_species: string | null;
+  treatment_name: string | null;
+  treatment_other: string | null;
+  treatment_start: string | null;
+  treatment_end: string | null;
+  treatment_completed: boolean;
+  hospitalized: boolean;
+  hospital_name: string | null;
+  severity: string | null;
+  outcome: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MalariaEpisodeInsert = {
+  person_id: string;
+  episode_date: string;
+  end_date?: string | null;
+  fever?: boolean;
+  fever_temp?: number | null;
+  chills?: boolean;
+  headache?: boolean;
+  vomiting?: boolean;
+  fatigue?: boolean;
+  joint_pain?: boolean;
+  sweating?: boolean;
+  test_type?: string | null;
+  test_result?: string | null;
+  parasite_species?: string | null;
+  treatment_name?: string | null;
+  treatment_other?: string | null;
+  treatment_start?: string | null;
+  treatment_end?: string | null;
+  treatment_completed?: boolean;
+  hospitalized?: boolean;
+  hospital_name?: string | null;
+  severity?: string | null;
+  outcome?: string | null;
+  notes?: string | null;
+};
+
 export type PregnancyInsert = {
   person_id: string;
   lmp_date?: string | null;
@@ -477,6 +552,7 @@ export type SharedLinkInsert = {
   document_id?: string | null;
   created_by: string;
   token: string;
+  token_hash?: string | null;
   expires_at: string;
   max_access_count?: number | null;
 };
@@ -567,7 +643,13 @@ export interface Database {
       shared_links: {
         Row: SharedLinkRow;
         Insert: SharedLinkInsert;
-        Update: Partial<{ revoked: boolean; max_access_count: number | null }>;
+        Update: Partial<{ revoked: boolean; token_hash: string | null; access_count: number; max_access_count: number | null }>;
+        Relationships: [];
+      };
+      share_access_log: {
+        Row: ShareAccessLogRow;
+        Insert: { link_id: string; ip_address?: string | null; user_agent?: string | null };
+        Update: Record<string, never>;
         Relationships: [];
       };
       lab_results: {

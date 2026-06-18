@@ -204,6 +204,26 @@ export default async function DashboardPage() {
           </div>
         )}
 
+        {/* Assistant IA */}
+        <Link href="/assistant" className="card border-blue-200 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-3 active:opacity-80">
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">K</div>
+          <div className="flex-1">
+            <p className="font-semibold text-white">KADI — Assistante IA</p>
+            <p className="text-xs text-blue-200">Comprends tes examens & médicaments</p>
+          </div>
+          <span className="text-white/70 text-lg">→</span>
+        </Link>
+
+        {/* Scanner */}
+        <Link href="/scan" className="card border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 flex items-center gap-3 active:opacity-80">
+          <span className="text-3xl">📄</span>
+          <div>
+            <p className="font-semibold text-gray-900">Scanner un document</p>
+            <p className="text-xs text-gray-500">Ordonnance, résultat d&apos;examen — extraction automatique</p>
+          </div>
+          <span className="ml-auto text-purple-600 text-lg">→</span>
+        </Link>
+
         {/* Accès rapides */}
         <h2 className="section-title">Accès rapides</h2>
         <div className="grid grid-cols-2 gap-3">
@@ -212,13 +232,15 @@ export default async function DashboardPage() {
             { href: "/rappels", icon: "⏰", label: "Rappels médicaments", sub: `${medReminders?.length ?? 0} actif(s)` },
             { href: "/symptomes", icon: "📝", label: "Symptômes", sub: "Journal quotidien" },
             { href: "/agenda", icon: "📅", label: "Agenda santé", sub: "Rendez-vous" },
-            { href: "/antecedents/mesures", icon: "📊", label: "Mesures vitales", sub: "Tension, glycémie…" },
+            { href: "/sante", icon: "📊", label: "Tableau de bord", sub: "Graphiques santé" },
             { href: "/resultats-labo", icon: "🔬", label: "Résultats labo", sub: "Analyses médicales" },
             { href: "/consultations", icon: "🩺", label: "Consultations", sub: "Carnet médical" },
             { href: "/pediatrique", icon: "👶", label: "Pédiatrie", sub: "Croissance & PEV" },
             { href: "/structures", icon: "🏥", label: "Structures", sub: "Hôpitaux & cliniques" },
             { href: "/export", icon: "🖨️", label: "Export PDF", sub: "Carnet imprimable" },
             { href: "/famille", icon: "👨‍👩‍👧", label: "Famille", sub: `${allPersons.length} profil(s)` },
+            { href: "/nutrition", icon: "🥗", label: "Nutrition", sub: "Journal alimentaire" },
+            { href: "/teleconsultation", icon: "📹", label: "Téléconsult.", sub: "Consultations en ligne" },
             { href: "/documents", icon: "📁", label: "Coffre-fort", sub: `${docs?.length ?? 0} document(s)` },
           ].map((item) => (
             <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:bg-gray-50">

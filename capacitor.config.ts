@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-const PROD_URL = "https://mon-carnet-sante-git-master-sangboliewas-projects.vercel.app";
+const PROD_URL = "https://mon-carnet-sante-nine.vercel.app";
 
 const config: CapacitorConfig = {
   appId: "com.moncarnetsante.app",
@@ -12,9 +12,10 @@ const config: CapacitorConfig = {
     cleartext: false,
     androidScheme: "https",
     allowNavigation: [
-      "mon-carnet-sante-git-master-sangboliewas-projects.vercel.app",
+      "mon-carnet-sante-nine.vercel.app",
       "*.vercel.app",
-      "mdewfplpnxejbuasrznp.supabase.co",
+      "*.supabase.co",
+      "mzdijbymqepnnqlnwezv.supabase.co",
     ],
   },
 

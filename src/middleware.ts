@@ -17,6 +17,13 @@ const PROTECTED_PATHS = [
   "/famille",
   "/export",
   "/pediatrique",
+  "/scan",
+  "/structures",
+  "/assistant",
+  "/sante",
+  "/rappels/sms",
+  "/nutrition",
+  "/teleconsultation",
 ];
 
 export async function middleware(request: NextRequest) {

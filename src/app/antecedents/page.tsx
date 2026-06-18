@@ -7,10 +7,11 @@ import PageHeader from "@/components/PageHeader";
 
 const SECTIONS = [
   { href: "/antecedents/allergies", icon: "⚠️", label: "Allergies", color: "border-red-200 bg-red-50" },
-  { href: "/antecedents/maladies", icon: "🫀", label: "Maladies chroniques", color: "border-purple-200 bg-purple-50" },
+  { href: "/antecedents/chroniques", icon: "🫀", label: "Maladies chroniques", color: "border-purple-200 bg-purple-50" },
   { href: "/antecedents/traitements", icon: "💊", label: "Traitements", color: "border-blue-200 bg-blue-50" },
   { href: "/antecedents/vaccins", icon: "💉", label: "Vaccinations", color: "border-green-200 bg-green-50" },
   { href: "/antecedents/mesures", icon: "📊", label: "Mesures vitales", color: "border-cyan-200 bg-cyan-50" },
+  { href: "/antecedents/paludisme", icon: "🦟", label: "Suivi Paludisme", color: "border-orange-200 bg-orange-50" },
 ];
 
 const FEMALE_SECTIONS = [
@@ -33,6 +34,7 @@ export default async function AntecedentsPage() {
     { count: traitementsCount },
     { count: vaccinsCount },
     { count: mesuresCount },
+    { count: paludismeCount },
     { count: menstruesCount },
     { count: grossesseCount },
   ] = person
@@ -42,6 +44,7 @@ export default async function AntecedentsPage() {
         supabase.from("treatments").select("id", { count: "exact", head: true }).eq("person_id", person.id),
         supabase.from("vaccinations").select("id", { count: "exact", head: true }).eq("person_id", person.id),
         supabase.from("vital_measurements").select("id", { count: "exact", head: true }).eq("person_id", person.id),
+        supabase.from("malaria_episodes").select("id", { count: "exact", head: true }).eq("person_id", person.id),
         person.gender === "female"
           ? supabase.from("menstrual_cycles").select("id", { count: "exact", head: true }).eq("person_id", person.id)
           : Promise.resolve({ count: 0 }),
@@ -49,9 +52,9 @@ export default async function AntecedentsPage() {
           ? supabase.from("prenatal_appointments").select("id", { count: "exact", head: true }).eq("person_id", person.id)
           : Promise.resolve({ count: 0 }),
       ])
-    : [{ count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }];
+    : [{ count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }];
 
-  const counts = [allergiesCount, maladiesCount, traitementsCount, vaccinsCount, mesuresCount];
+  const counts = [allergiesCount, maladiesCount, traitementsCount, vaccinsCount, mesuresCount, paludismeCount];
   const femaleCounts = [menstruesCount, grossesseCount];
   const isFemale = person?.gender === "female";
 

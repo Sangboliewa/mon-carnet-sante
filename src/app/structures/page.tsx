@@ -1,12 +1,15 @@
-import AppShell from "@/components/AppShell";
-import PageHeader from "@/components/PageHeader";
+import Link from "next/link";
 import StructuresClient from "./StructuresClient";
 
 export default function StructuresPage() {
   return (
-    <AppShell>
-      <PageHeader title="Structures de santé" back />
+    <div>
+      <div className="bg-gradient-to-br from-teal-600 to-cyan-700 px-4 pt-12 pb-8">
+        <Link href="/dashboard" className="text-teal-200 text-sm mb-3 block">← Accueil</Link>
+        <h1 className="text-white text-2xl font-bold">🏥 Structures de santé</h1>
+        <p className="text-teal-100 text-sm mt-1">7 pays · Hôpitaux, cliniques, pharmacies</p>
+      </div>
       <StructuresClient />
-    </AppShell>
+    </div>
   );
 }

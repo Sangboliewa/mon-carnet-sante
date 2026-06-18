@@ -3,6 +3,10 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { I18nProvider, type Locale } from "@/lib/i18n/context";
 import OfflineBanner from "@/components/OfflineBanner";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Mon Carnet Santé",
@@ -27,7 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialLocale: Locale = localeCookie === "en" ? "en" : "fr";
 
   return (
-    <html lang={initialLocale}>
+    <html lang={initialLocale} className={cn("font-sans", geist.variable)}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>

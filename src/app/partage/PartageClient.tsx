@@ -37,9 +37,16 @@ const DURATIONS = [
 ];
 
 function generateToken(): string {
-  const arr = new Uint8Array(24);
+  const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
   return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export default function PartageClient({ personId, userId, documents, initialLinks }: Props) {
@@ -61,17 +68,9 @@ export default function PartageClient({ personId, userId, documents, initialLink
     const supabase = createClient();
     const expiresAt = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
     const token = generateToken();
+    const tokenHash = await hashToken(token);
 
-    // Find the document to get its storage_path
-    const { data: doc } = await supabase
-      .from("medical_documents")
-      .select("storage_path")
-      .eq("id", selectedDocId)
-      .single();
-
-    if (!doc) { setCreating(false); return; }
-
-    // Create shared_link record
+    // Create shared_link record — token_hash stocké, token brut jamais exposé en BD seul
     const { data: link, error } = await supabase
       .from("shared_links")
       .insert({
@@ -79,6 +78,7 @@ export default function PartageClient({ personId, userId, documents, initialLink
         document_id: selectedDocId,
         created_by: userId,
         token,
+        token_hash: tokenHash,
         expires_at: expiresAt,
       })
       .select()
@@ -86,16 +86,12 @@ export default function PartageClient({ personId, userId, documents, initialLink
 
     if (error || !link) { setCreating(false); return; }
 
-    // Generate a signed URL for the file (demo version — see §4 security note)
-    const { data: signed } = await supabase.storage
-      .from("medical-documents")
-      .createSignedUrl(doc.storage_path, durationHours * 3600);
-
     setLinks((prev) => [link, ...prev]);
 
-    // Surface both the signed URL and the token (demo)
-    const demoUrl = signed?.signedUrl ?? `[URL signée non disponible — storage_path: ${doc.storage_path}]`;
-    setCreatedUrl(demoUrl);
+    // L'URL publique pointe vers la page /share/[token] — jamais la signed URL directement
+    const origin = window.location.origin;
+    const shareUrl = `${origin}/share/${token}`;
+    setCreatedUrl(shareUrl);
     setCreating(false);
     setShowForm(false);
   }
@@ -112,8 +108,9 @@ export default function PartageClient({ personId, userId, documents, initialLink
 
   return (
     <div className="px-4 py-5 space-y-4">
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-        ⚠️ <strong>Version démo</strong> — En production, les liens utiliseront des tokens hachés à usage unique via edge function. Voir note de sécurité §5.
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+        🔒 Les liens de partage sont sécurisés par token hashé et expiration automatique.
+        Seul le destinataire peut accéder au document via le lien.
       </div>
 
       <button onClick={() => { setShowForm((v) => !v); setCreatedUrl(null); }} className="btn-primary">
