@@ -206,9 +206,9 @@ export default async function DashboardPage() {
 
         {/* Assistant IA */}
         <Link href="/assistant" className="card border-blue-200 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-3 active:opacity-80">
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">K</div>
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0">A</div>
           <div className="flex-1">
-            <p className="font-semibold text-white">KADI — Assistante IA</p>
+            <p className="font-semibold text-white">ABIBA — Assistante IA</p>
             <p className="text-xs text-blue-200">Comprends tes examens & médicaments</p>
           </div>
           <span className="text-white/70 text-lg">→</span>

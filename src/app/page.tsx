@@ -6,7 +6,7 @@ const FEATURES = [
   { icon: "📋", title: "Antécédents complets", desc: "Allergies, maladies, vaccins, traitements, grossesse" },
   { icon: "🩺", title: "Consultations", desc: "Carnet médical, résultats labo, ordonnances" },
   { icon: "💊", title: "Rappels médicaments", desc: "Notifications push + SMS/WhatsApp via Twilio" },
-  { icon: "🤖", title: "KADI — IA médicale", desc: "Comprendre vos examens et médicaments avec Claude AI" },
+  { icon: "🤖", title: "ABIBA — IA médicale", desc: "Comprendre vos examens et médicaments avec Claude AI" },
   { icon: "👨‍👩‍👧", title: "Gestion famille", desc: "Profils multiples, chaque membre a son carnet" },
   { icon: "🥗", title: "Nutrition & Activité", desc: "Journal alimentaire, exercices, IMC, suivi calories" },
   { icon: "😴", title: "Sommeil", desc: "Journal de sommeil, qualité, graphique 7 jours" },
@@ -98,7 +98,7 @@ export default async function LandingPage() {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-10">
         <div className="max-w-lg mx-auto text-center">
           <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">K</div>
-          <h2 className="text-white text-xl font-bold">KADI, votre assistante IA</h2>
+          <h2 className="text-white text-xl font-bold">ABIBA, votre assistante IA</h2>
           <p className="text-blue-200 text-sm mt-3 leading-relaxed">
             Powered by Claude AI · Explique vos résultats d&apos;analyses, identifie les interactions médicamenteuses et répond à vos questions de santé en français.
           </p>

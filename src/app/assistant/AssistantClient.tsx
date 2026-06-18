@@ -101,14 +101,14 @@ export default function AssistantClient({ personId, personName }: Props) {
           <div className="space-y-4">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold">K</div>
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold">A</div>
                 <div>
                   <p className="font-semibold text-gray-900">Bonjour {personName} 👋</p>
-                  <p className="text-xs text-blue-600">KADI — Assistante Santé IA</p>
+                  <p className="text-xs text-blue-600">ABIBA — Assistante Santé IA</p>
                 </div>
               </div>
               <p className="text-sm text-gray-700 leading-relaxed">
-                Je suis KADI, ton assistante santé personnelle. Je peux t&apos;aider à comprendre tes examens, tes médicaments ou répondre à tes questions de santé.
+                Je suis ABIBA, ton assistante santé personnelle. Je peux t&apos;aider à comprendre tes examens, tes médicaments ou répondre à tes questions de santé.
               </p>
               <p className="text-xs text-amber-600 mt-2 bg-amber-50 rounded-lg px-2 py-1">
                 ⚕️ Je suis un outil éducatif, pas un médecin. Consulte toujours un professionnel de santé.
@@ -134,7 +134,7 @@ export default function AssistantClient({ personId, personName }: Props) {
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} gap-2`}>
             {msg.role === "assistant" && (
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 mt-0.5">K</div>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 mt-0.5">A</div>
             )}
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
@@ -168,7 +168,7 @@ export default function AssistantClient({ personId, personName }: Props) {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKey}
             rows={1}
-            placeholder="Pose ta question à KADI…"
+            placeholder="Pose ta question à ABIBA…"
             disabled={loading}
             className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 text-sm resize-none focus:outline-none focus:border-blue-400 disabled:opacity-60 max-h-32"
             style={{ lineHeight: "1.4" }}
@@ -184,7 +184,7 @@ export default function AssistantClient({ personId, personName }: Props) {
           </button>
         </form>
         <p className="text-xs text-center text-gray-400 mt-2">
-          KADI ne remplace pas un médecin · Urgences : <span className="font-medium">185</span>
+          ABIBA ne remplace pas un médecin · Urgences : <span className="font-medium">185</span>
         </p>
       </div>
     </div>

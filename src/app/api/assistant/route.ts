@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
-const SYSTEM_PROMPT = `Tu es KADI, l'assistante santé de Mon Carnet Santé — le Passeport Santé Numérique des Familles Africaines.
+const SYSTEM_PROMPT = `Tu es ABIBA, l'assistante santé de Mon Carnet Santé — le Passeport Santé Numérique des Familles Africaines.
 
 Tu aides les utilisateurs à :
 - Comprendre leurs résultats d'examens médicaux

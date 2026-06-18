@@ -19,9 +19,9 @@ export default async function AssistantPage() {
       {/* Header */}
       <div className="bg-blue-600 px-4 pt-12 pb-4 flex items-center gap-3">
         <a href="/dashboard" className="text-white/80 text-2xl leading-none">‹</a>
-        <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-white font-bold">K</div>
+        <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-white font-bold">A</div>
         <div>
-          <p className="text-white font-semibold leading-tight">KADI</p>
+          <p className="text-white font-semibold leading-tight">ABIBA</p>
           <p className="text-blue-200 text-xs">Assistante Santé IA · en ligne</p>
         </div>
       </div>
