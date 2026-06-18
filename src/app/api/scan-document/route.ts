@@ -3,6 +3,9 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Augmenter le timeout Vercel à 60s pour l'analyse IA
+export const maxDuration = 60;
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
@@ -30,6 +33,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: "Clé API manquante. Contactez l'administrateur." }, { status: 503 });
+  }
+
   // Parse multipart form
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
@@ -55,7 +62,9 @@ export async function POST(request: NextRequest) {
   const mediaType = file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif";
 
   // Call Claude Vision
-  const message = await anthropic.messages.create({
+  let message;
+  try {
+    message = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 2048,
     messages: [
@@ -129,6 +138,10 @@ Si une section est vide, mets un tableau vide []. Si un champ est inconnu, mets 
       },
     ],
   });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Erreur API";
+    return NextResponse.json({ error: "Erreur lors de l'analyse IA : " + msg }, { status: 502 });
+  }
 
   const responseText = message.content[0].type === "text" ? message.content[0].text : "";
 

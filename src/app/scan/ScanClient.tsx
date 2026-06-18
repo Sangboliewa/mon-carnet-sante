@@ -85,9 +85,12 @@ export default function ScanClient({ personId }: Props) {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/scan-document", { method: "POST", body: fd });
-      const json = await res.json();
+      const text = await res.text();
+      if (!text) throw new Error("Pas de réponse du serveur. Vérifiez votre connexion.");
+      let json: { error?: string; result?: unknown };
+      try { json = JSON.parse(text); } catch { throw new Error("Réponse invalide du serveur."); }
       if (!res.ok) throw new Error(json.error || "Erreur lors de l'analyse");
-      setResult(json.result);
+      setResult(json.result as typeof result);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
     } finally {
