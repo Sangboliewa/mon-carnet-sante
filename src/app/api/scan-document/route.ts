@@ -3,8 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Augmenter le timeout Vercel à 60s pour l'analyse IA
-export const maxDuration = 60;
+// Hobby plan: 10s max — Haiku est ~5x plus rapide que Sonnet pour OCR
+export const maxDuration = 10;
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
   let message;
   try {
     message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2048,
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 1024,
     messages: [
       {
         role: "user",
