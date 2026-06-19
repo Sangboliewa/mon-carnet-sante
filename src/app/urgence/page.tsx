@@ -29,7 +29,7 @@ export default async function UrgencePage() {
 
   return (
     <div>
-      <PageHeader title="Carte d'urgence" subtitle="Information pour les secours" />
+      <PageHeader title="Carte d'urgence" subtitle="Information pour les secours" gradient="from-red-600 to-red-800" emoji="🆘" />
       <UrgenceClient
         person={person}
         allergies={allergies ?? []}

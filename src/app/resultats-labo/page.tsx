@@ -23,7 +23,7 @@ export default async function ResultatsLaboPage() {
 
   return (
     <div>
-      <PageHeader title="Résultats de labo" back />
+      <PageHeader title="Résultats de labo" back gradient="from-cyan-600 to-blue-700" emoji="🔬" />
       <ResultatsLaboClient personId={person.id} gender={person.gender} initialData={results ?? []} />
     </div>
   );

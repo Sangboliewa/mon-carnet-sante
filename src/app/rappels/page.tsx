@@ -24,7 +24,7 @@ export default async function RappelsPage() {
 
   return (
     <div>
-      <PageHeader title="Rappels médicaments" back />
+      <PageHeader title="Rappels médicaments" back gradient="from-indigo-600 to-purple-700" emoji="⏰" />
       <div className="px-4 pt-3">
         <Link href="/rappels/sms"
           className="flex items-center gap-3 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-teal-50 px-4 py-3 mb-1 active:opacity-80">

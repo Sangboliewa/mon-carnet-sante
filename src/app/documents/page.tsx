@@ -23,7 +23,7 @@ export default async function DocumentsPage() {
 
   return (
     <div>
-      <PageHeader title="Coffre-fort" subtitle="Vos documents médicaux" />
+      <PageHeader title="Coffre-fort" subtitle="Vos documents médicaux" gradient="from-gray-700 to-gray-900" emoji="📁" back />
       <DocumentsClient personId={person.id} userId={user.id} initialData={documents ?? []} />
     </div>
   );

@@ -26,6 +26,9 @@ export default async function ConsultationsPage() {
       <PageHeader
         title="Consultations"
         subtitle={`${person.first_name} ${person.last_name}`}
+        gradient="from-health-blue to-cyan-600"
+        emoji="🩺"
+        back
       />
       <ConsultationsClient personId={person.id} initialData={consultations ?? []} />
     </div>

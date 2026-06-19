@@ -24,7 +24,7 @@ export default async function SymptomesPage() {
 
   return (
     <div>
-      <PageHeader title="Journal des symptômes" back />
+      <PageHeader title="Journal des symptômes" back gradient="from-teal-500 to-green-700" emoji="📝" />
       <SymptomesClient personId={person.id} initialData={logs ?? []} />
     </div>
   );

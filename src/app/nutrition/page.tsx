@@ -23,7 +23,7 @@ export default async function NutritionPage() {
 
   return (
     <div>
-      <PageHeader title="Nutrition" subtitle={`Journal de ${person.first_name}`} back />
+      <PageHeader title="Nutrition" subtitle={`Journal de ${person.first_name}`} back gradient="from-green-600 to-teal-700" emoji="🥗" />
       <NutritionClient personId={person.id} />
     </div>
   );
