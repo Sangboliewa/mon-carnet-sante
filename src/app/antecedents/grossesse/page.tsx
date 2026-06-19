@@ -33,7 +33,7 @@ export default async function GrossessePage() {
 
   return (
     <div>
-      <PageHeader title="Suivi de grossesse" back />
+      <PageHeader title="Suivi de grossesse" back gradient="from-rose-500 to-pink-700" emoji="🤰" />
       <GrossesseClient
         personId={person.id}
         initialPregnancy={currentPregnancy}

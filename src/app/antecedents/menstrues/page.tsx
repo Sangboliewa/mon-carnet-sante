@@ -25,7 +25,7 @@ export default async function MenstruesPage() {
 
   return (
     <div>
-      <PageHeader title="Suivi des menstrues" back />
+      <PageHeader title="Suivi des menstrues" back gradient="from-pink-500 to-rose-600" emoji="🌸" />
       <MenstruesClient personId={person.id} initialData={cycles ?? []} />
     </div>
   );

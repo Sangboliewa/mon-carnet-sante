@@ -24,7 +24,7 @@ export default async function VaccinsPage() {
 
   return (
     <div>
-      <PageHeader title="Vaccinations" back />
+      <PageHeader title="Vaccinations" back gradient="from-green-500 to-teal-600" emoji="💉" />
       <div className="px-4 pt-3">
         <Link href="/antecedents/vaccins/calendrier"
           className="flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 mb-1 active:opacity-80">

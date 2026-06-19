@@ -26,6 +26,9 @@ export default async function AgendaPage() {
       <PageHeader
         title="Agenda santé"
         subtitle={`${person.first_name} ${person.last_name}`}
+        gradient="from-teal-600 to-cyan-700"
+        emoji="📅"
+        back
       />
       <AgendaClient personId={person.id} initialData={appointments ?? []} />
     </div>

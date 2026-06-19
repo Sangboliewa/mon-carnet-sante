@@ -23,7 +23,7 @@ export default async function AllergiesPage() {
 
   return (
     <div>
-      <PageHeader title="Allergies" back />
+      <PageHeader title="Allergies" back gradient="from-red-500 to-rose-700" emoji="⚠️" />
       <AllergiesClient personId={person.id} initialData={allergies ?? []} />
     </div>
   );

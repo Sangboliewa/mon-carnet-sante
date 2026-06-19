@@ -26,6 +26,8 @@ export default async function PaludismePage() {
       <PageHeader
         title="Suivi Paludisme"
         subtitle={`${person.first_name} ${person.last_name}`}
+        gradient="from-orange-500 to-amber-600"
+        emoji="🦟"
         back
       />
       <PaludismeClient personId={person.id} initialData={episodes ?? []} />

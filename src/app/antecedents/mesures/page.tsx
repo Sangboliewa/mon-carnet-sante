@@ -23,7 +23,7 @@ export default async function MesuresPage() {
 
   return (
     <div>
-      <PageHeader title="Mesures vitales" back />
+      <PageHeader title="Mesures vitales" back gradient="from-cyan-500 to-blue-600" emoji="📊" />
       <MesuresClient personId={person.id} initialData={measurements ?? []} heightCm={person.height_cm} />
     </div>
   );

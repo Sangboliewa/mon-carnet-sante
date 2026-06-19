@@ -23,7 +23,7 @@ export default async function TraitementsPage() {
 
   return (
     <div>
-      <PageHeader title="Traitements" back />
+      <PageHeader title="Traitements" back gradient="from-blue-500 to-indigo-600" emoji="💊" />
       <TraitementsClient personId={person.id} initialData={treatments ?? []} />
     </div>
   );

@@ -42,7 +42,9 @@ export default async function SantePage() {
   return (
     <div>
       <PageHeader
-        title="Tableau de Bord Santé"
+        title="Bilan Santé"
+        gradient="from-violet-600 to-purple-700"
+        emoji="📊"
         subtitle={`${person.first_name} ${person.last_name}`}
         back
       />

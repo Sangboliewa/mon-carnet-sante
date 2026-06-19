@@ -170,8 +170,22 @@ export default function AgendaClient({ personId, initialData }: Props) {
       </div>
 
       {displayed.length === 0 && !showForm && (
-        <div className="card text-center text-gray-500 py-8 text-sm">
-          {filter === "upcoming" ? "Aucun rendez-vous à venir." : "Aucun rendez-vous enregistré."}
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">{filter === "upcoming" ? "📅" : "🗓️"}</div>
+          <p className="font-semibold text-gray-800">
+            {filter === "upcoming" ? "Aucun rendez-vous à venir" : "Aucun rendez-vous enregistré"}
+          </p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            {filter === "upcoming"
+              ? "Planifie tes prochains rendez-vous médicaux pour recevoir des rappels automatiques."
+              : "Commence à enregistrer tes rendez-vous pour avoir un historique complet."}
+          </p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2"
+          >
+            + Ajouter un rendez-vous
+          </button>
         </div>
       )}
 
