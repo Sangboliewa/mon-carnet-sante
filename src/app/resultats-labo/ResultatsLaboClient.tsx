@@ -249,7 +249,16 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
       )}
 
       {items.length === 0 && !showForm && (
-        <div className="card text-center text-gray-500 py-8 text-sm">Aucun résultat enregistré.</div>
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">🔬</div>
+          <p className="font-semibold text-gray-800">Suis l&apos;évolution de tes analyses</p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            Enregistre tes résultats de laboratoire pour suivre dans le temps hémoglobine, glycémie, cholestérol et bien plus.
+          </p>
+          <button onClick={() => setShowForm(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+            + Ajouter un résultat
+          </button>
+        </div>
       )}
 
       {groupedByDate.map(([date, results]) => (

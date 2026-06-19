@@ -149,7 +149,16 @@ export default function RappelsClient({ personId, initialData }: Props) {
       )}
 
       {items.length === 0 && !showForm && (
-        <div className="card text-center text-gray-500 py-8 text-sm">{t.rappels.noReminders}</div>
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">⏰</div>
+          <p className="font-semibold text-gray-800">Ne rate plus jamais un médicament</p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            Configure des rappels quotidiens pour chaque traitement. Tu recevras une notification à l&apos;heure exacte.
+          </p>
+          <button onClick={() => setShowForm(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+            + Configurer mes rappels
+          </button>
+        </div>
       )}
 
       {active.length > 0 && (

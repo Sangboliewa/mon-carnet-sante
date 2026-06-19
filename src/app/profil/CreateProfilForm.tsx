@@ -74,9 +74,9 @@ export default function CreateProfilForm() {
     // 3. Définir comme profil actif via cookie
     document.cookie = `active_person_id=${newPerson.id}; path=/; max-age=31536000`;
 
-    // 4. Navigation client-side (pas de rechargement complet — évite le cache WebView)
+    // 4. Navigation client-side — vers l'onboarding guidé
     router.refresh();
-    router.push("/dashboard");
+    router.push("/bienvenue");
   }
 
   return (
