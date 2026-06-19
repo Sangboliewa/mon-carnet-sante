@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   themeColor: "#1E6FBF",
 };
 
@@ -34,7 +36,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={initialLocale} className={cn("font-sans", geist.variable)}>
       <head>
+        {/* PWA iOS */}
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Carnet Santé" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>
         <I18nProvider initialLocale={initialLocale}>

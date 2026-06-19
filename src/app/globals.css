@@ -89,6 +89,49 @@
   }
 }
 
+/* ── Micro-animations ──────────────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.animate-slide-up  { animation: slide-up  0.3s cubic-bezier(0.4,0,0.2,1) both; }
+.animate-fade-in   { animation: fade-in   0.2s ease both; }
+.animate-scale-in  { animation: scale-in  0.25s cubic-bezier(0.4,0,0.2,1) both; }
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* Décalages pour les listes */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+
+/* Touch feedback amélioré sur les cards */
+.card {
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.card:active {
+  transform: scale(0.985);
+}
+
+/* Boutons avec feedback visuel */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
+
 @layer components {
   .btn-primary {
     @apply w-full py-4 px-6 bg-health-blue text-white font-semibold rounded-xl

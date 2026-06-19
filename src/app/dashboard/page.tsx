@@ -162,7 +162,7 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="px-4 py-5 space-y-4 -mt-2">
+      <div className="px-4 py-5 space-y-4 -mt-2 animate-slide-up">
 
         {/* ── Bannière onboarding (si pas de profil) ─────────── */}
         {!person && (
