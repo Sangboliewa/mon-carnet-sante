@@ -226,50 +226,64 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
       {/* List */}
       <div className="space-y-3">
         {reminders.length === 0 && (
-          <p className="text-center text-gray-400 text-sm py-8">Aucun rappel SMS/WhatsApp configuré</p>
+          <div className="card text-center py-10 space-y-3">
+            <div className="text-5xl">💬</div>
+            <p className="font-semibold text-gray-800">Aucun rappel configuré</p>
+            <p className="text-sm text-gray-500 leading-relaxed px-4">
+              Reçois tes rappels médicaments directement sur WhatsApp ou par SMS, à l&apos;heure exacte.
+            </p>
+            <button onClick={() => setShowForm(true)}
+              className="inline-block bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+              + Créer un rappel
+            </button>
+          </div>
         )}
-        {reminders.map(r => (
-          <div key={r.id} className={`bg-white rounded-2xl border p-4 ${!r.active ? "opacity-60" : ""}`}>
-            <div className="flex justify-between items-start gap-2">
-              <div className="flex items-start gap-2">
-                <span className="text-xl mt-0.5">{CHANNEL_ICONS[r.channel]}</span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{TYPE_LABELS[r.reminder_type] ?? r.reminder_type}</p>
-                  <p className="text-sm text-gray-700 mt-0.5">{r.message}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{r.phone_number} · {r.send_time.slice(0, 5)}</p>
-                  <div className="flex gap-1 mt-1.5 flex-wrap">
-                    {DAYS.map((d, i) => (
-                      <span key={i} className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        r.days_of_week?.includes(i) ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"
-                      }`}>{d}</span>
-                    ))}
+        {reminders.map(r => {
+          const borderCls = r.channel === "whatsapp" ? "border-l-green-500" : "border-l-blue-400";
+          const iconBg = r.channel === "whatsapp" ? "bg-green-50" : "bg-blue-50";
+          return (
+            <div key={r.id} className={`card flex items-start gap-3 border-l-4 ${borderCls} ${!r.active ? "opacity-60" : ""}`}>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${iconBg}`}>
+                {CHANNEL_ICONS[r.channel]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{TYPE_LABELS[r.reminder_type] ?? r.reminder_type}</p>
+                    <p className="text-sm text-gray-700 mt-0.5">{r.message}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{r.phone_number} · {r.send_time.slice(0, 5)}</p>
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {DAYS.map((d, i) => (
+                        <span key={i} className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          r.days_of_week?.includes(i) ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"
+                        }`}>{d}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <button onClick={() => toggleActive(r.id, r.active)}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${r.active ? "bg-green-500" : "bg-gray-300"}`}>
+                      <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${r.active ? "translate-x-6" : "translate-x-1"}`} />
+                    </button>
+                    <button onClick={() => remove(r.id)} className="text-red-400 text-xs">Supprimer</button>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                {/* Toggle active */}
-                <button onClick={() => toggleActive(r.id, r.active)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${r.active ? "bg-green-500" : "bg-gray-300"}`}>
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${r.active ? "translate-x-6" : "translate-x-1"}`} />
-                </button>
-                <button onClick={() => remove(r.id)} className="text-red-400 text-xs">Supprimer</button>
-              </div>
-            </div>
 
-            {/* Test send button */}
-            {r.active && (
-              <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-2">
-                <button onClick={() => testSend(r.id)} disabled={testingId === r.id}
-                  className="flex-1 py-2 rounded-xl border border-blue-200 text-blue-600 text-xs font-medium bg-blue-50 disabled:opacity-50 active:opacity-80">
-                  {testingId === r.id ? "Envoi en cours…" : `${twilioConfigured ? "Envoyer maintenant" : "Tester (simulation)"}`}
-                </button>
-                {testResult?.id === r.id && (
-                  <p className={`text-xs font-medium ${testResult.ok ? "text-green-600" : "text-red-600"}`}>{testResult.msg}</p>
+                {r.active && (
+                  <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-2">
+                    <button onClick={() => testSend(r.id)} disabled={testingId === r.id}
+                      className="flex-1 py-2 rounded-xl border border-blue-200 text-blue-600 text-xs font-medium bg-blue-50 disabled:opacity-50 active:opacity-80">
+                      {testingId === r.id ? "Envoi en cours…" : `${twilioConfigured ? "Envoyer maintenant" : "Tester (simulation)"}`}
+                    </button>
+                    {testResult?.id === r.id && (
+                      <p className={`text-xs font-medium ${testResult.ok ? "text-green-600" : "text-red-600"}`}>{testResult.msg}</p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* Info cron */}

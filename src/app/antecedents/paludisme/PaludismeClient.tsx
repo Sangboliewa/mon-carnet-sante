@@ -212,12 +212,15 @@ export default function PaludismeClient({ personId, initialData }: Props) {
           {/* Test */}
           <div>
             <label className="text-xs text-gray-500 font-medium block mb-1">Type de test</label>
-            <select value={form.test_type ?? ""}
-              onChange={e => set("test_type", e.target.value || null)}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm bg-white">
-              <option value="">— Sélectionner —</option>
-              {TEST_TYPES.map(t => <option key={t} value={t}>{TEST_LABELS[t]}</option>)}
-            </select>
+            <div className="grid grid-cols-2 gap-2">
+              {TEST_TYPES.map(t => (
+                <button key={t} type="button"
+                  onClick={() => set("test_type", form.test_type === t ? null : t)}
+                  className={`py-2 rounded-xl border-2 text-xs font-medium transition-all ${form.test_type === t ? "border-orange-400 bg-orange-50 text-orange-800" : "border-gray-100 text-gray-600"}`}>
+                  {TEST_LABELS[t]}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Résultat test */}
@@ -332,23 +335,36 @@ export default function PaludismeClient({ personId, initialData }: Props) {
 
       {/* Liste */}
       {items.length === 0 && !showForm && (
-        <div className="text-center py-8 text-gray-400">
-          <p className="text-4xl mb-2">🦟</p>
-          <p className="text-sm">Aucun épisode enregistré</p>
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">🦟</div>
+          <p className="font-semibold text-gray-800">Aucun épisode enregistré</p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            Consigne chaque épisode de paludisme pour suivre ta santé et informer ton médecin.
+          </p>
+          <button onClick={() => setShowForm(true)}
+            className="inline-block bg-orange-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+            + Nouvel épisode
+          </button>
         </div>
       )}
 
       <div className="space-y-3">
         {items.map(ep => {
           const symptCount = [ep.fever, ep.chills, ep.headache, ep.vomiting, ep.fatigue, ep.joint_pain, ep.sweating].filter(Boolean).length;
+          const borderHex = ep.severity === "cerebral" ? "#991b1b" : ep.severity === "grave" ? "#ef4444" : "#f59e0b";
+          const iconBg = ep.severity === "cerebral" ? "bg-red-100" : ep.severity === "grave" ? "bg-red-50" : "bg-orange-50";
           return (
-            <div key={ep.id} className="bg-white rounded-2xl shadow-sm p-4 space-y-2">
+            <div key={ep.id} className="card flex items-start gap-3 border-l-4" style={{ borderLeftColor: borderHex }}>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${iconBg}`}>
+                🦟
+              </div>
+              <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-semibold text-gray-900">{ep.episode_date}</p>
                   {ep.end_date && <p className="text-xs text-gray-500">→ {ep.end_date}</p>}
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${severityBadge(ep.severity)}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${severityBadge(ep.severity)}`}>
                   {ep.severity === "cerebral" ? "Cérébral" : ep.severity === "grave" ? "Grave" : "Simple"}
                 </span>
               </div>
@@ -390,6 +406,7 @@ export default function PaludismeClient({ personId, initialData }: Props) {
               >
                 {deletingId === ep.id ? "Suppression…" : "Supprimer"}
               </button>
+              </div>
             </div>
           );
         })}

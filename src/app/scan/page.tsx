@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentPerson } from "@/lib/getCurrentPerson";
@@ -17,10 +17,11 @@ export default async function ScanPage() {
 
   return (
     <div>
-      <PageHeader title="Scanner un document" back />
+      <PageHeader title="Scanner IA" subtitle="Extraire ordonnances & résultats" gradient="from-sky-500 to-blue-700" emoji="📄" back />
       <div className="px-4 pt-2">
         <ScanClient personId={person.id} />
       </div>
     </div>
   );
 }
+

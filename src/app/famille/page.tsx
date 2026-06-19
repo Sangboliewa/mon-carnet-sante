@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getAllPersons } from "@/lib/getCurrentPerson";
@@ -16,8 +16,9 @@ export default async function FamillePage() {
 
   return (
     <div>
-      <PageHeader title="Famille" subtitle="Gérer les profils" back />
+      <PageHeader title="Famille" subtitle="GÃ©rer les profils" back />
       <FamilleClient userId={user.id} persons={persons} activePersonId={activePersonId} />
     </div>
   );
 }
+

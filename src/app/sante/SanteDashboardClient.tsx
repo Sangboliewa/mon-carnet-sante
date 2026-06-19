@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import Link from "next/link";
 import type { PersonRow, VitalMeasurement } from "@/lib/supabase/types";
@@ -310,6 +310,51 @@ export default function SanteDashboardClient({ person, measurements, labResults,
         </div>
       )}
 
+      {/* Insights */}
+      {measurements.length > 0 && (() => {
+        const insights = (["blood_glucose", "blood_pressure", "heart_rate", "temperature", "oxygen_saturation"] as MetricKey[])
+          .map(type => {
+            const filtered = measurements.filter(m => m.measurement_type === type);
+            if (!filtered.length) return null;
+            const latest = filtered[filtered.length - 1];
+            const cfg = METRIC_CONFIG[type];
+            const numVal = type === "blood_pressure" ? (latest.value_secondary ?? latest.value_primary) : latest.value_primary;
+            const status = getStatus(numVal, cfg);
+            const valStr = type === "blood_pressure"
+              ? `${latest.value_primary}/${latest.value_secondary ?? "?"}` 
+              : `${latest.value_primary}`;
+            return { cfg, valStr, status };
+          })
+          .filter(Boolean) as { cfg: typeof METRIC_CONFIG[MetricKey]; valStr: string; status: "normal" | "warning" | "danger" }[];
+
+        if (!insights.length) return null;
+        return (
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">Interprétation des dernières mesures</p>
+            <div className="space-y-2">
+              {insights.map((ins, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{ins.cfg.icon}</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{ins.cfg.label}</p>
+                      <p className="text-xs text-gray-500">{ins.valStr} {ins.cfg.unit}</p>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    ins.status === "normal" ? "bg-green-100 text-green-700" :
+                    ins.status === "warning" ? "bg-amber-100 text-amber-700" :
+                    "bg-red-100 text-red-700"
+                  }`}>
+                    {ins.status === "normal" ? "✓ Normal" : ins.status === "warning" ? "⚠ Surveiller" : "⛔ Danger"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Metric selector */}
       <div>
         <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">Mesures vitales — 90 jours</p>
@@ -406,3 +451,4 @@ export default function SanteDashboardClient({ person, measurements, labResults,
     </div>
   );
 }
+

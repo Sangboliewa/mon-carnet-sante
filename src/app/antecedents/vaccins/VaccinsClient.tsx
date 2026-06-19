@@ -135,20 +135,46 @@ export default function VaccinsClient({ personId, initialData }: Props) {
 
       {items.map(item => {
         const status = getReminderStatus(item.next_dose_date, t);
+        const isOverdue = status?.className.includes("red");
+        const isUrgent = status?.className.includes("orange");
+        const isPlanned = status?.className.includes("green") || status?.className.includes("yellow");
+        const borderCls = isOverdue ? "border-l-red-400" : isUrgent ? "border-l-orange-400" : isPlanned ? "border-l-green-400" : "border-l-gray-200";
+        const iconBg = isOverdue ? "bg-red-50" : isUrgent ? "bg-orange-50" : "bg-blue-50";
         return (
-          <div key={item.id} className="card space-y-1">
-            <div className="flex justify-between items-start">
-              <p className="font-semibold text-gray-900">{item.vaccine_name}</p>
-              {status && <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${status.className}`}>{status.label}</span>}
+          <div key={item.id} className={`card flex items-start gap-3 border-l-4 ${borderCls}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${iconBg}`}>
+              💉
             </div>
-            {item.administered_date && <p className="text-xs text-gray-400">{t.vaccins.administered} : {item.administered_date}</p>}
-            {item.batch_number && <p className="text-xs text-gray-400">{t.vaccins.lot} : {item.batch_number}</p>}
-            {item.administering_center && <p className="text-xs text-gray-400">{t.vaccins.center} : {item.administering_center}</p>}
-            {item.next_dose_date && <p className="text-xs text-gray-500">{t.vaccins.reminder} : {item.next_dose_date}</p>}
-            {item.notes && <p className="text-xs text-gray-500 italic">{item.notes}</p>}
-            <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-red-500 text-xs mt-2">
-              {deletingId === item.id ? t.common.deleting : t.common.delete}
-            </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <p className="font-semibold text-gray-900">{item.vaccine_name}</p>
+                {status && (
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${status.className}`}>
+                    {status.label}
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 space-y-0.5">
+                {item.administered_date && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className="text-gray-300">✓</span> {t.vaccins.administered} : <span className="font-medium">{item.administered_date}</span>
+                  </p>
+                )}
+                {item.administering_center && (
+                  <p className="text-xs text-gray-400">🏥 {item.administering_center}</p>
+                )}
+                {item.next_dose_date && (
+                  <p className={`text-xs font-medium ${isOverdue ? "text-red-600" : isUrgent ? "text-orange-600" : "text-gray-500"}`}>
+                    📅 Prochain rappel : {item.next_dose_date}
+                  </p>
+                )}
+                {item.batch_number && <p className="text-xs text-gray-400">Lot : {item.batch_number}</p>}
+                {item.notes && <p className="text-xs text-gray-400 italic">{item.notes}</p>}
+              </div>
+              <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-red-400 text-xs mt-2">
+                {deletingId === item.id ? t.common.deleting : t.common.delete}
+              </button>
+            </div>
           </div>
         );
       })}

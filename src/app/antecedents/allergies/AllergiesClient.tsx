@@ -4,10 +4,25 @@ import { createClient } from "@/lib/supabase/client";
 import type { Allergy, AllergyInsert } from "@/lib/supabase/types";
 
 const SEVERITIES = [
-  { value: "mild", label: "Légère", badge: "badge-severity-mild" },
-  { value: "moderate", label: "Modérée", badge: "badge-severity-moderate" },
-  { value: "severe", label: "Sévère", badge: "badge-severity-severe" },
-  { value: "life_threatening", label: "Vie en danger", badge: "badge-severity-severe" },
+  { value: "mild",             label: "Légère",        badge: "badge-severity-mild",     border: "border-l-yellow-400", icon: "bg-yellow-50", emoji: "🟡" },
+  { value: "moderate",         label: "Modérée",       badge: "badge-severity-moderate", border: "border-l-orange-400", icon: "bg-orange-50", emoji: "🟠" },
+  { value: "severe",           label: "Sévère",        badge: "badge-severity-severe",   border: "border-l-red-500",    icon: "bg-red-50",    emoji: "🔴" },
+  { value: "life_threatening", label: "Vie en danger", badge: "badge-severity-severe",   border: "border-l-red-700",    icon: "bg-red-100",   emoji: "🚨" },
+];
+
+const COMMON_ALLERGENS = [
+  { label: "Pénicilline", cat: "💊" },
+  { label: "Amoxicilline", cat: "💊" },
+  { label: "Aspirine", cat: "💊" },
+  { label: "Ibuprofène", cat: "💊" },
+  { label: "Sulfamides", cat: "💊" },
+  { label: "Arachides", cat: "🥜" },
+  { label: "Poisson", cat: "🐟" },
+  { label: "Crevettes", cat: "🦐" },
+  { label: "Lait", cat: "🥛" },
+  { label: "Œufs", cat: "🥚" },
+  { label: "Gluten", cat: "🌾" },
+  { label: "Latex", cat: "🧤" },
 ];
 
 const BLANK: Omit<AllergyInsert, "person_id"> = {
@@ -84,13 +99,28 @@ export default function AllergiesClient({ personId, initialData }: Props) {
             </div>
           </div>
           <div>
-            <label className="label">Sévérité</label>
-            <select name="severity" className="input-field" value={form.severity ?? ""} onChange={handleChange}>
-              <option value="">— Choisir —</option>
-              {SEVERITIES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+            <label className="label">Allergènes fréquents</label>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {COMMON_ALLERGENS.map((a) => (
+                <button key={a.label} type="button"
+                  onClick={() => setForm((f) => ({ ...f, allergen: f.allergen === a.label ? "" : a.label }))}
+                  className={`text-xs px-2.5 py-1.5 rounded-full border font-medium transition-all flex items-center gap-1 ${form.allergen === a.label ? "bg-health-blue text-white border-health-blue" : "bg-white text-gray-600 border-gray-200"}`}>
+                  <span>{a.cat}</span>{a.label}
+                </button>
               ))}
-            </select>
+            </div>
+          </div>
+          <div>
+            <label className="label">Sévérité</label>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              {SEVERITIES.map((s) => (
+                <button key={s.value} type="button"
+                  onClick={() => setForm((f) => ({ ...f, severity: (f.severity === s.value ? null : s.value) as typeof f.severity }))}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${form.severity === s.value ? "border-health-blue bg-health-blue-light text-health-blue" : "border-gray-100 text-gray-600"}`}>
+                  <span>{s.emoji}</span>{s.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="label">Réaction</label>
@@ -126,26 +156,27 @@ export default function AllergiesClient({ personId, initialData }: Props) {
       {items.map((item) => {
         const sev = SEVERITIES.find((s) => s.value === item.severity);
         return (
-          <div key={item.id} className="card space-y-1">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-semibold text-gray-900">{item.allergen}</p>
-                {item.allergen_code && (
-                  <p className="text-xs text-gray-400">{item.coding_system} : {item.allergen_code}</p>
-                )}
-              </div>
-              {sev && <span className={sev.badge}>{sev.label}</span>}
+          <div key={item.id} className={`card flex items-start gap-3 border-l-4 ${sev?.border ?? "border-l-gray-200"}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${sev?.icon ?? "bg-gray-50"}`}>
+              {sev?.emoji ?? "⚠️"}
             </div>
-            {item.reaction && <p className="text-sm text-gray-600">Réaction : {item.reaction}</p>}
-            {item.diagnosed_date && <p className="text-xs text-gray-400">Diagnostiqué : {item.diagnosed_date}</p>}
-            {item.notes && <p className="text-xs text-gray-500 italic">{item.notes}</p>}
-            <button
-              onClick={() => handleDelete(item.id)}
-              disabled={deletingId === item.id}
-              className="text-red-500 text-xs mt-2 active:text-red-700"
-            >
-              {deletingId === item.id ? "Suppression…" : "Supprimer"}
-            </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <p className="font-semibold text-gray-900">{item.allergen}</p>
+                {sev && <span className={`flex-shrink-0 ${sev.badge}`}>{sev.label}</span>}
+              </div>
+              {item.reaction && (
+                <p className="text-sm text-gray-600 mt-0.5">⚡ {item.reaction}</p>
+              )}
+              {item.diagnosed_date && (
+                <p className="text-xs text-gray-400 mt-0.5">Diagnostiqué : {item.diagnosed_date}</p>
+              )}
+              {item.notes && <p className="text-xs text-gray-400 italic mt-0.5">{item.notes}</p>}
+              <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id}
+                className="text-red-400 text-xs mt-2">
+                {deletingId === item.id ? "Suppression…" : "Supprimer"}
+              </button>
+            </div>
           </div>
         );
       })}

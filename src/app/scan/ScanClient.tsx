@@ -270,7 +270,7 @@ export default function ScanClient({ personId }: Props) {
 
           {/* Traitements */}
           {result.traitements.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-4">
+            <div className="card border-l-4 border-l-blue-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
                 <input type="checkbox" checked={saveTraitements} onChange={e => setSaveTraitements(e.target.checked)} className="w-4 h-4 accent-blue-600" />
                 <span className="font-semibold text-gray-800">💊 Traitements ({result.traitements.length})</span>
@@ -290,9 +290,9 @@ export default function ScanClient({ personId }: Props) {
 
           {/* Résultats labo */}
           {result.resultats_labo.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-4">
+            <div className="card border-l-4 border-l-purple-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
-                <input type="checkbox" checked={saveLabo} onChange={e => setSaveLabo(e.target.checked)} className="w-4 h-4 accent-blue-600" />
+                <input type="checkbox" checked={saveLabo} onChange={e => setSaveLabo(e.target.checked)} className="w-4 h-4 accent-purple-600" />
                 <span className="font-semibold text-gray-800">🧪 Résultats labo ({result.resultats_labo.length})</span>
               </label>
               <ul className="space-y-2">
@@ -325,9 +325,9 @@ export default function ScanClient({ personId }: Props) {
 
           {/* Maladies */}
           {result.maladies.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-4">
+            <div className="card border-l-4 border-l-orange-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
-                <input type="checkbox" checked={saveMaladies} onChange={e => setSaveMaladies(e.target.checked)} className="w-4 h-4 accent-blue-600" />
+                <input type="checkbox" checked={saveMaladies} onChange={e => setSaveMaladies(e.target.checked)} className="w-4 h-4 accent-orange-600" />
                 <span className="font-semibold text-gray-800">🏥 Diagnostics ({result.maladies.length})</span>
               </label>
               <ul className="space-y-2">
@@ -343,9 +343,9 @@ export default function ScanClient({ personId }: Props) {
 
           {/* Allergies */}
           {result.allergies.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-4">
+            <div className="card border-l-4 border-l-red-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
-                <input type="checkbox" checked={saveAllergies} onChange={e => setSaveAllergies(e.target.checked)} className="w-4 h-4 accent-blue-600" />
+                <input type="checkbox" checked={saveAllergies} onChange={e => setSaveAllergies(e.target.checked)} className="w-4 h-4 accent-red-600" />
                 <span className="font-semibold text-gray-800">⚠️ Allergies ({result.allergies.length})</span>
               </label>
               <ul className="space-y-2">

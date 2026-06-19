@@ -140,22 +140,28 @@ export default function HtaClient({ personId, initial }: Props) {
               onChange={e => setForm({ ...form, heart_rate: e.target.value })} className="input mt-1" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-500 font-medium">Bras</label>
-              <select value={form.arm} onChange={e => setForm({ ...form, arm: e.target.value })} className="input mt-1">
-                <option value="left">Gauche</option>
-                <option value="right">Droit</option>
-                <option value="both">Les deux</option>
-              </select>
+          <div>
+            <label className="text-xs text-gray-500 font-medium">Bras</label>
+            <div className="flex gap-2 mt-1">
+              {([["left","💪 Gauche"],["right","💪 Droit"],["both","Les deux"]] as const).map(([v,l]) => (
+                <button key={v} type="button"
+                  onClick={() => setForm({ ...form, arm: v })}
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-medium transition-all ${form.arm === v ? "border-red-400 bg-red-50 text-red-800" : "border-gray-100 text-gray-600"}`}>
+                  {l}
+                </button>
+              ))}
             </div>
-            <div>
-              <label className="text-xs text-gray-500 font-medium">Position</label>
-              <select value={form.position} onChange={e => setForm({ ...form, position: e.target.value })} className="input mt-1">
-                <option value="sitting">Assis</option>
-                <option value="standing">Debout</option>
-                <option value="lying">Allongé</option>
-              </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 font-medium">Position</label>
+            <div className="flex gap-2 mt-1">
+              {([["sitting","🪑 Assis"],["standing","🧍 Debout"],["lying","🛏 Allongé"]] as const).map(([v,l]) => (
+                <button key={v} type="button"
+                  onClick={() => setForm({ ...form, position: v })}
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-medium transition-all ${form.position === v ? "border-red-400 bg-red-50 text-red-800" : "border-gray-100 text-gray-600"}`}>
+                  {l}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -190,24 +196,48 @@ export default function HtaClient({ personId, initial }: Props) {
 
       {/* List */}
       <div className="space-y-3">
-        {records.length === 0 && <p className="text-center text-gray-400 text-sm py-8">Aucune mesure enregistrée</p>}
+        {records.length === 0 && (
+          <div className="card text-center py-10 space-y-3">
+            <div className="text-5xl">🩺</div>
+            <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+            <p className="text-sm text-gray-500 leading-relaxed px-4">
+              Suis ta tension artérielle régulièrement pour détecter et contrôler l&apos;hypertension.
+            </p>
+            <button onClick={() => setShowForm(true)}
+              className="inline-block bg-red-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+              + Nouvelle mesure
+            </button>
+          </div>
+        )}
         {records.map(r => {
           const s = STATUS_INFO[bpStatus(r.systolic, r.diastolic)];
+          const borderHex: Record<string, string> = { optimal: "#22c55e", normal: "#3b82f6", elevated: "#eab308", high1: "#f59e0b", high2: "#f97316", crisis: "#ef4444" };
+          const bpKey = bpStatus(r.systolic, r.diastolic);
+          const iconBg: Record<string, string> = { optimal: "bg-green-50", normal: "bg-blue-50", elevated: "bg-yellow-50", high1: "bg-amber-50", high2: "bg-orange-50", crisis: "bg-red-50" };
           return (
-            <div key={r.id} className={`rounded-2xl border p-4 ${s.bg}`}>
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-xs text-gray-500">{new Date(r.recorded_at).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
-                  <p className={`text-2xl font-bold mt-0.5 ${s.color}`}>{r.systolic}/{r.diastolic} <span className="text-sm font-normal text-gray-500">mmHg</span></p>
-                  <p className={`text-xs font-semibold ${s.color}`}>{s.label}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  {r.heart_rate && <span className="text-sm text-gray-600">❤️ {r.heart_rate} bpm</span>}
-                  <button onClick={() => remove(r.id)} className="text-gray-300 text-lg">×</button>
-                </div>
+            <div key={r.id} className="card flex items-start gap-3 border-l-4" style={{ borderLeftColor: borderHex[bpKey] }}>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${iconBg[bpKey]}`}>
+                🩺
               </div>
-              {r.arm && <p className="text-xs text-gray-500 mt-1">Bras: {r.arm === "left" ? "gauche" : r.arm === "right" ? "droit" : "les deux"} · {r.position === "sitting" ? "assis" : r.position === "standing" ? "debout" : "allongé"}</p>}
-              {r.notes && <p className="text-sm text-gray-600 mt-1 italic">{r.notes}</p>}
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <p className="text-xs text-gray-500">{new Date(r.recorded_at).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                    <p className={`text-xl font-bold mt-0.5 ${s.color}`}>{r.systolic}/{r.diastolic} <span className="text-sm font-normal text-gray-500">mmHg</span></p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${s.bg} ${s.color}`}>{s.label}</span>
+                    {r.heart_rate && <span className="text-xs text-gray-500">❤️ {r.heart_rate} bpm</span>}
+                  </div>
+                </div>
+                {r.arm && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Bras {r.arm === "left" ? "gauche" : r.arm === "right" ? "droit" : "les deux"} · {r.position === "sitting" ? "Assis" : r.position === "standing" ? "Debout" : "Allongé"}
+                  </p>
+                )}
+                {r.notes && <p className="text-xs text-gray-500 italic mt-0.5">{r.notes}</p>}
+                <button onClick={() => remove(r.id)} className="text-red-400 text-xs mt-1.5">Supprimer</button>
+              </div>
             </div>
           );
         })}

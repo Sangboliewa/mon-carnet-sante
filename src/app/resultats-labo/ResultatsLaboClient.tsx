@@ -64,10 +64,45 @@ const STATUS_STYLE: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   normal: "Normal", low: "Bas", high: "Élevé", unknown: "—",
 };
+const STATUS_BORDER: Record<string, string> = {
+  normal: "border-l-green-400", low: "border-l-blue-400", high: "border-l-red-500", unknown: "border-l-gray-200",
+};
+const STATUS_ICON_BG: Record<string, string> = {
+  normal: "bg-green-50", low: "bg-blue-50", high: "bg-red-50", unknown: "bg-gray-50",
+};
+const STATUS_EMOJI: Record<string, string> = {
+  normal: "✅", low: "📉", high: "⚠️", unknown: "🔬",
+};
 
 function today() { return new Date().toISOString().split("T")[0]; }
 function fmt(d: string) {
   return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function RangeBar({ value, refMin, refMax, unit }: { value: number; refMin: number; refMax: number; unit: string }) {
+  const lo = Math.min(value, refMin) * 0.8;
+  const hi = Math.max(value, refMax) * 1.2;
+  const span = hi - lo || 1;
+  const pct = (x: number) => Math.max(1, Math.min(99, Math.round(((x - lo) / span) * 100)));
+  const greenLeft = pct(refMin);
+  const greenRight = 100 - pct(refMax);
+  const dotLeft = pct(value);
+  const status = value < refMin ? "low" : value > refMax ? "high" : "normal";
+  const dotBg = status === "normal" ? "#22c55e" : status === "low" ? "#3b82f6" : "#ef4444";
+  return (
+    <div className="mt-2 mb-1">
+      <div className="relative h-2 bg-gray-100 rounded-full">
+        <div className="absolute h-full bg-green-200 rounded-full"
+          style={{ left: `${greenLeft}%`, right: `${greenRight}%` }} />
+        <div className="absolute w-3.5 h-3.5 rounded-full border-2 border-white shadow-md"
+          style={{ left: `${dotLeft}%`, top: "50%", transform: "translate(-50%, -50%)", backgroundColor: dotBg }} />
+      </div>
+      <div className="flex justify-between mt-2">
+        <span className="text-xs text-gray-400">{refMin}</span>
+        <span className="text-xs text-gray-400">{refMax} {unit}</span>
+      </div>
+    </div>
+  );
 }
 
 interface Props { personId: string; gender: string | null; initialData: LabResult[] }
@@ -267,12 +302,20 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
           {results.map((r) => {
             const s = statusOf(r);
             return (
-              <div key={r.id} className="card flex justify-between items-start">
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900 text-sm">{r.test_name}</p>
-                  <p className="text-lg font-bold text-gray-800">{r.value} <span className="text-sm font-normal text-gray-500">{r.unit}</span></p>
+              <div key={r.id} className={`card flex items-start gap-3 border-l-4 ${STATUS_BORDER[s]}`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${STATUS_ICON_BG[s]}`}>
+                  {STATUS_EMOJI[s]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <p className="font-semibold text-gray-900 text-sm">{r.test_name}</p>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_STYLE[s]}`}>
+                      {STATUS_LABEL[s]}
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-gray-800 mt-0.5">{r.value} <span className="text-sm font-normal text-gray-500">{r.unit}</span></p>
                   {r.ref_min != null && r.ref_max != null && (
-                    <p className="text-xs text-gray-400">Norme : {r.ref_min} – {r.ref_max} {r.unit}</p>
+                    <RangeBar value={r.value} refMin={r.ref_min} refMax={r.ref_max} unit={r.unit ?? ""} />
                   )}
                   {r.lab_name && <p className="text-xs text-gray-400">{r.lab_name}</p>}
                   {r.notes && <p className="text-xs text-gray-500 italic">{r.notes}</p>}
@@ -280,9 +323,6 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
                     {deletingId === r.id ? "…" : "Supprimer"}
                   </button>
                 </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ml-2 flex-shrink-0 ${STATUS_STYLE[s]}`}>
-                  {STATUS_LABEL[s]}
-                </span>
               </div>
             );
           })}

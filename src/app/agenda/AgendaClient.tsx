@@ -9,6 +9,22 @@ const SPECIALTIES = [
   "Radiologie", "Kinésithérapie", "Dentiste", "Laboratoire", "Autre",
 ];
 
+const SPECIALTY_ICON: Record<string, string> = {
+  "Médecine générale": "🩺", "Cardiologie": "❤️", "Dermatologie": "🧴",
+  "Gynécologie": "🌸", "Neurologie": "🧠", "Ophtalmologie": "👁️",
+  "ORL": "👂", "Pédiatrie": "👶", "Psychiatrie": "🧘",
+  "Radiologie": "🔬", "Kinésithérapie": "💪", "Dentiste": "🦷",
+  "Laboratoire": "🧪", "Autre": "🏥",
+};
+
+const SPECIALTY_BORDER: Record<string, string> = {
+  "Médecine générale": "#3b82f6", "Cardiologie": "#ef4444", "Dermatologie": "#f59e0b",
+  "Gynécologie": "#ec4899", "Neurologie": "#8b5cf6", "Ophtalmologie": "#06b6d4",
+  "ORL": "#14b8a6", "Pédiatrie": "#f97316", "Psychiatrie": "#6366f1",
+  "Radiologie": "#64748b", "Kinésithérapie": "#22c55e", "Dentiste": "#0ea5e9",
+  "Laboratoire": "#a855f7", "Autre": "#6b7280",
+};
+
 function today() { return new Date().toISOString().split("T")[0]; }
 
 function daysUntil(d: string) {
@@ -189,24 +205,57 @@ export default function AgendaClient({ personId, initialData }: Props) {
         </div>
       )}
 
+      {/* Prochain RDV highlight */}
+      {filter === "upcoming" && (() => {
+        const next = items.find((i) => !i.completed && i.appointment_date >= today());
+        if (!next) return null;
+        const d = daysUntil(next.appointment_date);
+        const icon = next.specialty ? (SPECIALTY_ICON[next.specialty] ?? "🏥") : "📅";
+        const borderColor = next.specialty ? (SPECIALTY_BORDER[next.specialty] ?? "#6b7280") : "#3b82f6";
+        return (
+          <div className="rounded-2xl p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
+            <p className="text-xs font-semibold uppercase tracking-wide opacity-75 mb-1">Prochain rendez-vous</p>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{icon}</span>
+              <div className="flex-1">
+                <p className="font-bold text-base leading-tight">{next.title}</p>
+                <p className="text-sm opacity-85 mt-0.5">{formatDate(next.appointment_date)}{next.appointment_time ? ` · ${next.appointment_time}` : ""}</p>
+                {next.doctor_name && <p className="text-xs opacity-70 mt-0.5">{next.doctor_name}</p>}
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-2xl font-black">{d === 0 ? "Auj." : `J-${d}`}</p>
+                <div className="w-3 h-3 rounded-full mx-auto mt-1" style={{ backgroundColor: borderColor }} />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="space-y-2">
         {displayed.map((appt) => {
           const badge = apptBadge(appt);
+          const icon = appt.specialty ? (SPECIALTY_ICON[appt.specialty] ?? "🏥") : "📅";
+          const borderColor = appt.specialty ? (SPECIALTY_BORDER[appt.specialty] ?? "#6b7280") : "#e5e7eb";
           return (
-            <div key={appt.id} className={`card space-y-1 ${appt.completed ? "opacity-60" : ""}`}>
+            <div key={appt.id} className={`card flex items-start gap-3 border-l-4 ${appt.completed ? "opacity-60" : ""}`}
+              style={{ borderLeftColor: borderColor }}>
+              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-2xl flex-shrink-0" style={{ backgroundColor: borderColor + "18" }}>
+                {icon}
+              </div>
+              <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-semibold text-gray-900">{appt.title}</p>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(appt.appointment_date)}
-                    {appt.appointment_time ? ` à ${appt.appointment_time}` : ""}
-                  </p>
-                  {appt.specialty && <p className="text-xs text-gray-500">{appt.specialty}{appt.doctor_name ? ` — ${appt.doctor_name}` : ""}</p>}
-                  {appt.location && <p className="text-xs text-gray-400">{appt.location}</p>}
+                    <p className="font-semibold text-gray-900">{appt.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(appt.appointment_date)}
+                      {appt.appointment_time ? ` à ${appt.appointment_time}` : ""}
+                    </p>
+                    {appt.specialty && <p className="text-xs text-gray-500">{appt.specialty}{appt.doctor_name ? ` — ${appt.doctor_name}` : ""}</p>}
+                    {appt.location && <p className="text-xs text-gray-400">{appt.location}</p>}
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${badge.cls}`}>{badge.label}</span>
                 </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${badge.cls}`}>{badge.label}</span>
-              </div>
-              {appt.notes && <p className="text-xs text-gray-500 italic">{appt.notes}</p>}
+              {appt.notes && <p className="mt-1 text-xs text-gray-500 italic">{appt.notes}</p>}
               <div className="flex gap-4 pt-1">
                 <button onClick={() => handleToggle(appt)} disabled={togglingId === appt.id}
                   className={`text-xs font-medium ${appt.completed ? "text-gray-400" : "text-green-600"}`}>
@@ -215,6 +264,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
                 <button onClick={() => handleDelete(appt.id)} disabled={deletingId === appt.id} className="text-xs text-red-400">
                   {deletingId === appt.id ? "…" : "Supprimer"}
                 </button>
+              </div>
               </div>
             </div>
           );

@@ -56,7 +56,23 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
   return (
     <div className="px-4 py-5 space-y-4">
       {/* Document metadata */}
-      <div className="card space-y-2">
+      <div className="card border-l-4 border-l-blue-400 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-2xl flex-shrink-0">
+            {document.document_type === "ordonnance" ? "💊" :
+             document.document_type === "resultat_labo" ? "🧪" :
+             document.document_type === "imagerie" ? "🩻" :
+             document.document_type === "compte_rendu" ? "📋" : "📄"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 text-sm">{document.filename}</p>
+            {document.document_type && (
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                {document.document_type}
+              </span>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           {document.document_type && (
             <>
@@ -127,8 +143,12 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
               )}
             </div>
           ) : (
-            <div className="card text-center text-gray-500 py-6">
-              <p>Aucune fiche explicative disponible pour ce type d&apos;examen.</p>
+            <div className="card text-center py-10 space-y-3">
+              <div className="text-5xl">🔍</div>
+              <p className="font-semibold text-gray-800">Pas de fiche disponible</p>
+              <p className="text-sm text-gray-500 leading-relaxed px-4">
+                Aucune fiche explicative n&apos;est encore disponible pour ce type d&apos;examen.
+              </p>
             </div>
           )}
         </div>

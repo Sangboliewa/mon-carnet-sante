@@ -47,6 +47,47 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
   );
 }
 
+function MoodHeatmap({ items }: { items: SymptomLog[] }) {
+  const MOOD_HEX = ["#fca5a5", "#fdba74", "#fde68a", "#86efac", "#34d399"];
+  const days: { date: string; label: string; mood: number | null }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split("T")[0];
+    const found = items.find((it) => it.logged_date === ds);
+    days.push({ date: ds, label: d.toLocaleDateString("fr-FR", { weekday: "narrow" }), mood: found?.mood ?? null });
+  }
+  return (
+    <div className="card">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Humeur — 14 derniers jours</p>
+      <div className="grid grid-cols-7 gap-1.5">
+        {days.map((d) => (
+          <div key={d.date} className="flex flex-col items-center gap-1">
+            <div
+              className="w-full rounded-lg"
+              style={{ aspectRatio: "1", backgroundColor: d.mood ? MOOD_HEX[d.mood - 1] : "#f3f4f6" }}
+              title={d.mood ? MOOD_LABELS[d.mood - 1] : "Pas de données"}
+            />
+            <span className="text-[9px] text-gray-400 leading-none">{d.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 mt-3 flex-wrap">
+        {MOODS.map((emoji, i) => (
+          <div key={i} className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: MOOD_HEX[i] }} />
+            <span className="text-[9px] text-gray-400">{emoji}</span>
+          </div>
+        ))}
+        <div className="flex items-center gap-1 ml-auto">
+          <div className="w-2.5 h-2.5 rounded-sm bg-gray-100 flex-shrink-0" />
+          <span className="text-[9px] text-gray-300">aucune donnée</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function today() { return new Date().toISOString().split("T")[0]; }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
@@ -293,6 +334,9 @@ export default function SymptomesClient({ personId, initialData }: Props) {
           </button>
         </div>
       )}
+
+      {/* Heatmap humeur */}
+      {items.length > 2 && <MoodHeatmap items={items} />}
 
       {/* Historique 14 jours */}
       {recent.length > 0 && (

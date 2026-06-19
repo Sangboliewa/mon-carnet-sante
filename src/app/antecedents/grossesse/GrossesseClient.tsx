@@ -230,27 +230,53 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
 
       {/* ── Résumé grossesse ── */}
       {pregnancy && !showPregForm && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 space-y-2">
+        <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50 p-4 space-y-3">
           <div className="flex justify-between items-center">
-            <p className="text-sm font-semibold text-rose-800">Grossesse en cours</p>
-            <button onClick={() => setShowPregForm(true)} className="text-xs text-rose-600 underline">Modifier</button>
-          </div>
-          {sa !== null && (
-            <p className="text-2xl font-bold text-rose-700">{sa} SA <span className="text-base font-normal">semaines</span></p>
-          )}
-          {dpaDisplay && (
-            <p className="text-sm text-gray-700">
-              Date prévue d&apos;accouchement : <span className="font-semibold">{formatDate(dpaDisplay)}</span>
+            <p className="text-sm font-semibold text-rose-800 flex items-center gap-2">
+              <span>🤰</span> {STATUS_LABELS[pregnancy.status]}
             </p>
+            <button onClick={() => setShowPregForm(true)} className="text-xs text-rose-500 border border-rose-200 px-2.5 py-1 rounded-lg">Modifier</button>
+          </div>
+
+          {sa !== null && pregnancy.status === "ongoing" && (
+            <>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-black text-rose-700">{sa}</p>
+                <p className="text-base text-rose-500">SA <span className="text-sm font-normal text-gray-500">/ 40 semaines</span></p>
+                <span className={`ml-auto text-xs font-semibold px-2.5 py-1 rounded-full ${sa <= 13 ? "bg-blue-100 text-blue-700" : sa <= 27 ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"}`}>
+                  {sa <= 13 ? "1er trimestre" : sa <= 27 ? "2ème trimestre" : "3ème trimestre"}
+                </span>
+              </div>
+              <div>
+                <div className="h-3 bg-rose-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-rose-400 to-pink-500 transition-all"
+                    style={{ width: `${Math.min(100, Math.round((sa / 40) * 100))}%` }} />
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-xs text-gray-400">Semaine 1</span>
+                  <span className="text-xs text-gray-500 font-medium">{Math.min(100, Math.round((sa / 40) * 100))}%</span>
+                  <span className="text-xs text-gray-400">Semaine 40</span>
+                </div>
+              </div>
+            </>
           )}
+
+          {dpaDisplay && (
+            <div className="bg-white/70 rounded-xl px-3 py-2">
+              <p className="text-xs text-gray-500">Date prévue d&apos;accouchement</p>
+              <p className="font-bold text-gray-900 mt-0.5">{formatDate(dpaDisplay)}</p>
+              {dpaDisplay && (() => {
+                const remaining = daysUntil(dpaDisplay);
+                return remaining > 0 ? (
+                  <p className="text-xs text-rose-600 font-medium mt-0.5">Dans {remaining} jours</p>
+                ) : null;
+              })()}
+            </div>
+          )}
+
           {pregnancy.lmp_date && (
-            <p className="text-xs text-gray-500">Dernières règles : {formatDate(pregnancy.lmp_date)}</p>
+            <p className="text-xs text-gray-400">DDR : {formatDate(pregnancy.lmp_date)}</p>
           )}
-          <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${
-            pregnancy.status === "ongoing" ? "bg-rose-100 text-rose-700" : "bg-gray-100 text-gray-600"
-          }`}>
-            {STATUS_LABELS[pregnancy.status]}
-          </span>
           {pregnancy.notes && <p className="text-xs text-gray-500 italic">{pregnancy.notes}</p>}
         </div>
       )}
@@ -349,38 +375,54 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
         )}
 
         {appointments.length === 0 && !showApptForm && (
-          <div className="card text-center text-gray-500 py-6 text-sm">Aucune consultation enregistrée.</div>
+          <div className="card text-center py-10 space-y-3">
+            <div className="text-5xl">👶</div>
+            <p className="font-semibold text-gray-800">Aucune consultation prénatale</p>
+            <p className="text-sm text-gray-500 leading-relaxed px-4">
+              Planifie tes 9 consultations obligatoires et reçois des rappels avant chaque rendez-vous.
+            </p>
+            <button onClick={() => setShowApptForm(true)} className="inline-block bg-rose-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+              + Planifier une consultation
+            </button>
+          </div>
         )}
 
         {appointments.map((appt) => {
           const badge = apptBadge(appt);
+          const borderCls = appt.completed ? "border-l-gray-300" : badge.cls.includes("orange") ? "border-l-orange-400" : badge.cls.includes("red") ? "border-l-red-400" : "border-l-rose-400";
+          const iconBg = appt.completed ? "bg-gray-50" : "bg-rose-50";
           return (
-            <div key={appt.id} className={`card space-y-1 ${appt.completed ? "opacity-60" : ""}`}>
-              <div className="flex justify-between items-start">
-                <p className="font-semibold text-gray-900 text-sm">{appt.appointment_type}</p>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>
+            <div key={appt.id} className={`card flex items-start gap-3 border-l-4 ${borderCls} ${appt.completed ? "opacity-60" : ""}`}>
+              <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center text-2xl flex-shrink-0`}>
+                {appt.appointment_type?.toLowerCase().includes("échographie") ? "🔬" : "🤰"}
               </div>
-              <p className="text-xs text-gray-500">
-                {formatDate(appt.appointment_date)}{appt.appointment_time ? ` à ${appt.appointment_time}` : ""}
-              </p>
-              {appt.healthcare_provider && <p className="text-xs text-gray-500">{appt.healthcare_provider}</p>}
-              {appt.location && <p className="text-xs text-gray-400">{appt.location}</p>}
-              {appt.notes && <p className="text-xs text-gray-500 italic">{appt.notes}</p>}
-              <div className="flex gap-4 mt-2">
-                <button
-                  onClick={() => handleToggleCompleted(appt)}
-                  disabled={togglingId === appt.id}
-                  className={`text-xs font-medium ${appt.completed ? "text-gray-400" : "text-green-600"}`}
-                >
-                  {togglingId === appt.id ? "…" : appt.completed ? "Marquer non effectuée" : "Marquer effectuée"}
-                </button>
-                <button
-                  onClick={() => handleDeleteAppt(appt.id)}
-                  disabled={deletingApptId === appt.id}
-                  className="text-red-500 text-xs"
-                >
-                  {deletingApptId === appt.id ? "Suppression…" : "Supprimer"}
-                </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-2">
+                  <p className="font-semibold text-gray-900 text-sm">{appt.appointment_type}</p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${badge.cls}`}>{badge.label}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {formatDate(appt.appointment_date)}{appt.appointment_time ? ` à ${appt.appointment_time}` : ""}
+                </p>
+                {appt.healthcare_provider && <p className="text-xs text-gray-500">{appt.healthcare_provider}</p>}
+                {appt.location && <p className="text-xs text-gray-400">{appt.location}</p>}
+                {appt.notes && <p className="text-xs text-gray-500 italic mt-0.5">{appt.notes}</p>}
+                <div className="flex gap-4 mt-2">
+                  <button
+                    onClick={() => handleToggleCompleted(appt)}
+                    disabled={togglingId === appt.id}
+                    className={`text-xs font-medium ${appt.completed ? "text-gray-400" : "text-green-600"}`}
+                  >
+                    {togglingId === appt.id ? "…" : appt.completed ? "Marquer non effectuée" : "Marquer effectuée"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAppt(appt.id)}
+                    disabled={deletingApptId === appt.id}
+                    className="text-red-500 text-xs"
+                  >
+                    {deletingApptId === appt.id ? "Suppression…" : "Supprimer"}
+                  </button>
+                </div>
               </div>
             </div>
           );

@@ -4,9 +4,9 @@ import { createClient } from "@/lib/supabase/client";
 import type { ChronicCondition, ChronicConditionInsert } from "@/lib/supabase/types";
 
 const STATUSES = [
-  { value: "active", label: "Active" },
-  { value: "remission", label: "En rémission" },
-  { value: "resolved", label: "Résolue" },
+  { value: "active",    label: "Active",        border: "border-l-red-400",   badge: "bg-red-100 text-red-800",    icon: "bg-red-50" },
+  { value: "remission", label: "En rémission",  border: "border-l-amber-400", badge: "bg-amber-100 text-amber-800", icon: "bg-amber-50" },
+  { value: "resolved",  label: "Résolue",       border: "border-l-gray-300",  badge: "bg-gray-100 text-gray-600",  icon: "bg-gray-50" },
 ];
 
 const BLANK: Omit<ChronicConditionInsert, "person_id"> = {
@@ -83,12 +83,15 @@ export default function MaladiesClient({ personId, initialData }: Props) {
           </div>
           <div>
             <label className="label">Statut</label>
-            <select name="status" className="input-field" value={form.status ?? ""} onChange={handleChange}>
-              <option value="">— Choisir —</option>
+            <div className="flex gap-2 mt-1">
               {STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+                <button key={s.value} type="button"
+                  onClick={() => setForm((f) => ({ ...f, status: (f.status === s.value ? null : s.value) as "active" | "remission" | "resolved" | null }))}
+                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${form.status === s.value ? "border-health-blue bg-health-blue-light text-health-blue" : "border-gray-100 text-gray-600"}`}>
+                  {s.label}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
           <div>
             <label className="label">Date du diagnostic</label>
@@ -105,33 +108,47 @@ export default function MaladiesClient({ personId, initialData }: Props) {
       )}
 
       {items.length === 0 && !showForm && (
-        <div className="card text-center text-gray-500 py-8">Aucune maladie chronique enregistrée.</div>
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">🏥</div>
+          <p className="font-semibold text-gray-800">Aucune maladie enregistrée</p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            Note tes maladies chroniques et antécédents pour que ton médecin dispose d&apos;un dossier complet.
+          </p>
+          <button onClick={() => setShowForm(true)}
+            className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+            + Ajouter une maladie
+          </button>
+        </div>
       )}
 
       {items.map((item) => {
-        const st = STATUSES.find((s) => s.value === item.status);
+        const st = STATUSES.find((s) => s.value === item.status) ?? STATUSES[0];
+        const isResolved = item.status === "resolved";
         return (
-          <div key={item.id} className="card space-y-1">
-            <div className="flex justify-between items-start">
-              <p className="font-semibold text-gray-900">{item.condition_name}</p>
-              {st && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+          <div key={item.id} className={`card flex items-start gap-3 border-l-4 ${st.border} ${isResolved ? "opacity-65" : ""}`}>
+            <div className={`w-11 h-11 rounded-xl ${st.icon} flex items-center justify-center text-2xl flex-shrink-0`}>
+              🏥
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <p className="font-semibold text-gray-900">{item.condition_name}</p>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${st.badge}`}>
                   {st.label}
                 </span>
-              )}
+              </div>
+              <div className="mt-0.5 space-y-0.5">
+                {item.diagnosed_date && (
+                  <p className="text-xs text-gray-400">Diagnostiqué : <span className="font-medium">{item.diagnosed_date}</span></p>
+                )}
+                {item.condition_code && (
+                  <p className="text-xs text-gray-400">{item.coding_system} : {item.condition_code}</p>
+                )}
+                {item.notes && <p className="text-xs text-gray-500 italic mt-1">{item.notes}</p>}
+              </div>
+              <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-red-400 text-xs mt-2">
+                {deletingId === item.id ? "Suppression…" : "Supprimer"}
+              </button>
             </div>
-            {item.condition_code && (
-              <p className="text-xs text-gray-400">{item.coding_system} : {item.condition_code}</p>
-            )}
-            {item.diagnosed_date && <p className="text-xs text-gray-400">Diagnostiqué : {item.diagnosed_date}</p>}
-            {item.notes && <p className="text-xs text-gray-500 italic">{item.notes}</p>}
-            <button
-              onClick={() => handleDelete(item.id)}
-              disabled={deletingId === item.id}
-              className="text-red-500 text-xs mt-2"
-            >
-              {deletingId === item.id ? "Suppression…" : "Supprimer"}
-            </button>
           </div>
         );
       })}

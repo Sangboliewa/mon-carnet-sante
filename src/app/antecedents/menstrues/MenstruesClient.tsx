@@ -134,13 +134,15 @@ export default function MenstruesClient({ personId, initialData }: Props) {
           </div>
           <div>
             <label className="label">Flux</label>
-            <select name="flow" className="input-field" value={form.flow ?? ""} onChange={handleChange}>
-              <option value="">— Choisir —</option>
-              <option value="light">Légère</option>
-              <option value="medium">Modérée</option>
-              <option value="heavy">Abondante</option>
-              <option value="very_heavy">Très abondante</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              {(["light", "medium", "heavy", "very_heavy"] as const).map((v) => (
+                <button key={v} type="button"
+                  onClick={() => setForm((f) => ({ ...f, flow: f.flow === v ? null : v }))}
+                  className={`py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${form.flow === v ? "border-pink-400 bg-pink-50 text-pink-800" : "border-gray-100 text-gray-600"}`}>
+                  {FLOW_LABELS[v]}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="label">Symptômes</label>
@@ -157,31 +159,51 @@ export default function MenstruesClient({ personId, initialData }: Props) {
       )}
 
       {items.length === 0 && !showForm && (
-        <div className="card text-center text-gray-500 py-8">Aucun cycle enregistré.</div>
-      )}
-
-      {items.map((item) => (
-        <div key={item.id} className="card space-y-1">
-          <div className="flex justify-between items-start">
-            <p className="font-semibold text-gray-900">{formatDate(item.start_date)}</p>
-            {item.flow && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
-                {FLOW_LABELS[item.flow]}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-gray-500">Durée : {cycleDuration(item.start_date, item.end_date)}</p>
-          {item.symptoms && <p className="text-xs text-gray-500">Symptômes : {item.symptoms}</p>}
-          {item.notes && <p className="text-xs text-gray-500 italic">{item.notes}</p>}
-          <button
-            onClick={() => handleDelete(item.id)}
-            disabled={deletingId === item.id}
-            className="text-red-500 text-xs mt-2"
-          >
-            {deletingId === item.id ? "Suppression…" : "Supprimer"}
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">🌸</div>
+          <p className="font-semibold text-gray-800">Aucun cycle enregistré</p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            Suis tes cycles menstruels pour mieux comprendre ton corps et prédire ton prochain cycle.
+          </p>
+          <button onClick={() => setShowForm(true)}
+            className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+            + Ajouter un cycle
           </button>
         </div>
-      ))}
+      )}
+
+      {items.map((item) => {
+        const isOngoing = !item.end_date;
+        return (
+        <div key={item.id} className={`card flex items-start gap-3 border-l-4 ${isOngoing ? "border-l-pink-500" : "border-l-pink-200"}`}>
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${isOngoing ? "bg-pink-100" : "bg-pink-50"}`}>
+            🌸
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start gap-2 flex-wrap">
+              <p className="font-semibold text-gray-900">{formatDate(item.start_date)}</p>
+              {item.flow && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800 flex-shrink-0">
+                  {FLOW_LABELS[item.flow]}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {isOngoing ? <span className="text-pink-600 font-medium">En cours</span> : `Durée : ${cycleDuration(item.start_date, item.end_date)}`}
+            </p>
+            {item.symptoms && <p className="text-xs text-gray-500 mt-0.5">Symptômes : {item.symptoms}</p>}
+            {item.notes && <p className="text-xs text-gray-500 italic mt-0.5">{item.notes}</p>}
+            <button
+              onClick={() => handleDelete(item.id)}
+              disabled={deletingId === item.id}
+              className="text-red-400 text-xs mt-2"
+            >
+              {deletingId === item.id ? "Suppression…" : "Supprimer"}
+            </button>
+          </div>
+        </div>
+        );
+      })}
     </div>
   );
 }

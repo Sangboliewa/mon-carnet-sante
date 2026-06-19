@@ -155,11 +155,14 @@ export default function TeleconsultationClient() {
                 {upcoming.map(tc => {
                   const days = daysUntil(tc.teleconsult_date);
                   return (
-                    <div key={tc.id} className="card border-l-4 border-l-blue-500">
+                    <div key={tc.id} className="card flex items-start gap-3 border-l-4 border-l-blue-500">
+                      <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-2xl flex-shrink-0">
+                        {PLATFORM_ICONS[tc.platform]}
+                      </div>
+                      <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xl">{PLATFORM_ICONS[tc.platform]}</span>
                             <span className="font-semibold text-gray-900">{tc.doctor_name}</span>
                             {tc.specialty && <span className="text-sm text-gray-500">— {tc.specialty}</span>}
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[tc.status]}`}>{STATUS_LABELS[tc.status]}</span>
@@ -189,6 +192,7 @@ export default function TeleconsultationClient() {
                           </div>
                         </div>
                       </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -202,11 +206,14 @@ export default function TeleconsultationClient() {
               <h2 className="text-base font-bold text-green-700 mb-3">✅ Terminées ({past.length})</h2>
               <div className="space-y-2">
                 {past.map(tc => (
-                  <div key={tc.id} className="card border-l-4 border-l-green-400">
+                  <div key={tc.id} className="card flex items-start gap-3 border-l-4 border-l-green-400">
+                    <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0">
+                      {PLATFORM_ICONS[tc.platform]}
+                    </div>
+                    <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span>{PLATFORM_ICONS[tc.platform]}</span>
                           <span className="font-medium text-gray-900">{tc.doctor_name}</span>
                           {tc.specialty && <span className="text-sm text-gray-500">— {tc.specialty}</span>}
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[tc.status]}`}>{STATUS_LABELS[tc.status]}</span>
@@ -232,6 +239,7 @@ export default function TeleconsultationClient() {
                         <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">Supprimer</button>
                       </div>
                     </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -244,11 +252,13 @@ export default function TeleconsultationClient() {
               <h2 className="text-base font-bold text-red-600 mb-3">❌ Annulées ({cancelled.length})</h2>
               <div className="space-y-2">
                 {cancelled.map(tc => (
-                  <div key={tc.id} className="card border-l-4 border-l-red-300 opacity-70">
-                    <div className="flex items-center justify-between">
+                  <div key={tc.id} className="card flex items-center gap-3 border-l-4 border-l-red-300 opacity-70">
+                    <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-xl flex-shrink-0">
+                      {PLATFORM_ICONS[tc.platform]}
+                    </div>
+                    <div className="flex-1 min-w-0 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span>{PLATFORM_ICONS[tc.platform]}</span>
                           <span className="font-medium text-gray-700">{tc.doctor_name}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[tc.status]}`}>{STATUS_LABELS[tc.status]}</span>
                         </div>
@@ -263,10 +273,16 @@ export default function TeleconsultationClient() {
           )}
 
           {list.length === 0 && (
-            <div className="text-center py-20 text-gray-400">
-              <div className="text-5xl mb-3">📹</div>
-              <p className="font-medium text-lg">Aucune téléconsultation</p>
-              <p className="text-sm mt-1">Ajoutez votre première consultation en ligne.</p>
+            <div className="card text-center py-12 space-y-3">
+              <div className="text-6xl">📹</div>
+              <p className="font-bold text-gray-800 text-lg">Consultez un médecin en ligne</p>
+              <p className="text-sm text-gray-500 leading-relaxed px-6">
+                Planifiez vos téléconsultations via Google Meet, WhatsApp ou Zoom. Gardez un historique complet avec notes et ordonnances.
+              </p>
+              <button onClick={openNew}
+                className="inline-block bg-cyan-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+                + Planifier une téléconsultation
+              </button>
             </div>
           )}
         </>
@@ -297,20 +313,23 @@ export default function TeleconsultationClient() {
                       value={form.specialty} onChange={handleChange} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="label">Plateforme</label>
-                    <select name="platform" className="input-field" value={form.platform} onChange={handleChange}>
-                      {(Object.keys(PLATFORM_LABELS) as Platform[]).map(p => (
-                        <option key={p} value={p}>{PLATFORM_ICONS[p]} {PLATFORM_LABELS[p]}</option>
-                      ))}
-                    </select>
+                <div>
+                  <label className="label">Plateforme</label>
+                  <div className="grid grid-cols-5 gap-2 mt-1">
+                    {(Object.keys(PLATFORM_LABELS) as Platform[]).map((p) => (
+                      <button key={p} type="button"
+                        onClick={() => setForm((f) => ({ ...f, platform: p }))}
+                        className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all ${form.platform === p ? "border-cyan-500 bg-cyan-50" : "border-gray-100 bg-white"}`}>
+                        <span className="text-xl">{PLATFORM_ICONS[p]}</span>
+                        <span className="text-[10px] text-gray-600 leading-tight text-center">{PLATFORM_LABELS[p]}</span>
+                      </button>
+                    ))}
                   </div>
-                  <div>
-                    <label className="label">Durée (min)</label>
-                    <input type="number" name="duration_minutes" className="input-field" min={1} placeholder="30"
-                      value={form.duration_minutes} onChange={handleChange} />
-                  </div>
+                </div>
+                <div>
+                  <label className="label">Durée (min)</label>
+                  <input type="number" name="duration_minutes" className="input-field" min={1} placeholder="30"
+                    value={form.duration_minutes} onChange={handleChange} />
                 </div>
                 <div>
                   <label className="label">Lien de la réunion</label>

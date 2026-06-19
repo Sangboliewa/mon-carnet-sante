@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Person } from "@/lib/supabase/types";
@@ -9,10 +9,27 @@ const GENDERS = [
   { value: "female", label: "Féminin" },
   { value: "other", label: "Autre" },
 ];
+const PROFILE_FIELDS = [
+  "first_name", "last_name", "date_of_birth", "gender",
+  "blood_type", "height_cm", "weight_kg",
+  "emergency_contact_name", "emergency_contact_phone",
+] as const;
 
-interface Props {
-  person: Person;
+function calcBMI(h: string, w: string): number | null {
+  const hm = parseFloat(h) / 100;
+  const wk = parseFloat(w);
+  if (!hm || !wk || hm < 0.5 || wk < 5) return null;
+  return Math.round((wk / (hm * hm)) * 10) / 10;
 }
+
+function bmiCategory(bmi: number): { label: string; cls: string } {
+  if (bmi < 18.5) return { label: "Insuffisance pondérale", cls: "text-blue-700 bg-blue-50 border-blue-200" };
+  if (bmi < 25)   return { label: "Poids normal ✓",         cls: "text-green-700 bg-green-50 border-green-200" };
+  if (bmi < 30)   return { label: "Surpoids",               cls: "text-amber-700 bg-amber-50 border-amber-200" };
+  return                  { label: "Obésité",                cls: "text-red-700 bg-red-50 border-red-200" };
+}
+
+interface Props { person: Person }
 
 export default function ProfilForm({ person }: Props) {
   const [form, setForm] = useState({
@@ -34,12 +51,15 @@ export default function ProfilForm({ person }: Props) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
+  const filled = PROFILE_FIELDS.filter((k) => !!form[k]).length;
+  const pct = Math.round((filled / PROFILE_FIELDS.length) * 100);
+  const bmi = calcBMI(form.height_cm, form.weight_kg);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
     setSuccess(false);
-
     const supabase = createClient();
     const { error: updateError } = await supabase
       .from("persons")
@@ -55,7 +75,6 @@ export default function ProfilForm({ person }: Props) {
         emergency_contact_phone: form.emergency_contact_phone || null,
       })
       .eq("id", person.id);
-
     setSaving(false);
     if (updateError) {
       setError("Erreur lors de la sauvegarde : " + updateError.message);
@@ -67,19 +86,42 @@ export default function ProfilForm({ person }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Completeness */}
+      <div className="card">
+        <div className="flex justify-between items-center mb-2">
+          <p className="text-sm font-medium text-gray-700">Complétude du profil</p>
+          <p className="text-sm font-bold text-health-blue">{pct}%</p>
+        </div>
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${pct}%`,
+              background: pct === 100 ? "#22c55e" : "linear-gradient(to right, #2563eb, #60a5fa)",
+            }}
+          />
+        </div>
+        {pct < 100 && (
+          <p className="text-xs text-gray-400 mt-1.5">
+            {PROFILE_FIELDS.length - filled} champ{PROFILE_FIELDS.length - filled > 1 ? "s" : ""} manquant{PROFILE_FIELDS.length - filled > 1 ? "s" : ""} — complète ton profil pour un meilleur suivi
+          </p>
+        )}
+      </div>
+
       {success && (
         <div className="bg-health-green-light border border-health-green rounded-xl p-3 text-sm text-health-green-dark font-medium">
           ✓ Profil mis à jour avec succès
         </div>
       )}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>
       )}
 
+      {/* Identité */}
       <div className="card space-y-4">
-        <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Identité</h2>
+        <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex items-center gap-2">
+          <span>👤</span> Identité
+        </h2>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Prénom</label>
@@ -96,25 +138,34 @@ export default function ProfilForm({ person }: Props) {
         </div>
         <div>
           <label className="label">Genre</label>
-          <select name="gender" className="input-field" value={form.gender} onChange={handleChange}>
-            <option value="">— Choisir —</option>
+          <div className="flex gap-2 mt-1">
             {GENDERS.map((g) => (
-              <option key={g.value} value={g.value}>{g.label}</option>
+              <button key={g.value} type="button"
+                onClick={() => setForm((f) => ({ ...f, gender: f.gender === g.value ? "" : g.value }))}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${form.gender === g.value ? "bg-health-blue text-white border-health-blue" : "bg-white text-gray-600 border-gray-200"}`}>
+                {g.label}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
       </div>
 
+      {/* Données médicales */}
       <div className="card space-y-4">
-        <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Données médicales</h2>
+        <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex items-center gap-2">
+          <span>🩺</span> Données médicales
+        </h2>
         <div>
           <label className="label">Groupe sanguin</label>
-          <select name="blood_type" className="input-field" value={form.blood_type} onChange={handleChange}>
-            <option value="">— Inconnu —</option>
+          <div className="flex gap-2 flex-wrap mt-1">
             {BLOOD_TYPES.map((b) => (
-              <option key={b} value={b}>{b}</option>
+              <button key={b} type="button"
+                onClick={() => setForm((f) => ({ ...f, blood_type: f.blood_type === b ? "" : b }))}
+                className={`w-14 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${form.blood_type === b ? "bg-red-500 text-white border-red-500 shadow-sm scale-105" : "bg-white text-gray-700 border-gray-200"}`}>
+                {b}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -126,10 +177,25 @@ export default function ProfilForm({ person }: Props) {
             <input name="weight_kg" type="number" min="1" max="500" step="0.1" className="input-field" value={form.weight_kg} onChange={handleChange} placeholder="70" />
           </div>
         </div>
+        {bmi !== null && (() => {
+          const cat = bmiCategory(bmi);
+          return (
+            <div className={`flex items-center justify-between rounded-xl px-4 py-3 border ${cat.cls}`}>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-70">IMC calculé</p>
+                <p className="font-semibold text-sm mt-0.5">{cat.label}</p>
+              </div>
+              <p className="text-3xl font-black">{bmi}</p>
+            </div>
+          );
+        })()}
       </div>
 
+      {/* Contact d'urgence */}
       <div className="card space-y-4">
-        <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Contact d&apos;urgence</h2>
+        <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex items-center gap-2">
+          <span>🚨</span> Contact d&apos;urgence
+        </h2>
         <div>
           <label className="label">Nom</label>
           <input name="emergency_contact_name" className="input-field" value={form.emergency_contact_name} onChange={handleChange} placeholder="Nom complet" />

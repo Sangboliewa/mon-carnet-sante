@@ -139,9 +139,15 @@ export default function DiabeteClient({ personId, initial }: Props) {
 
           <div>
             <label className="text-xs text-gray-500 font-medium">Contexte mesure</label>
-            <select value={form.meal_context} onChange={e => setForm({ ...form, meal_context: e.target.value })} className="input mt-1">
-              {Object.entries(MEAL_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              {Object.entries(MEAL_LABELS).map(([v, l]) => (
+                <button key={v} type="button"
+                  onClick={() => setForm({ ...form, meal_context: v })}
+                  className={`py-2 rounded-xl border-2 text-xs font-medium transition-all ${form.meal_context === v ? "border-amber-400 bg-amber-50 text-amber-800" : "border-gray-100 text-gray-600"}`}>
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -200,12 +206,28 @@ export default function DiabeteClient({ personId, initial }: Props) {
       {/* List */}
       <div className="space-y-3">
         {records.length === 0 && (
-          <p className="text-center text-gray-400 text-sm py-8">Aucune mesure enregistrée</p>
+          <div className="card text-center py-10 space-y-3">
+            <div className="text-5xl">🩸</div>
+            <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+            <p className="text-sm text-gray-500 leading-relaxed px-4">
+              Suis ta glycémie et ton HbA1c pour mieux gérer ton diabète au quotidien.
+            </p>
+            <button onClick={() => setShowForm(true)}
+              className="inline-block bg-amber-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+              + Nouvelle mesure
+            </button>
+          </div>
         )}
         {records.map(r => {
           const status = glucoseStatus(r.glucose_fasting ?? r.glucose_postprandial, r.meal_context);
+          const borderCls = status === "danger" ? "border-l-red-500" : status === "warning" ? "border-l-amber-400" : status === "normal" ? "border-l-green-400" : "border-l-gray-200";
+          const iconBg = status === "danger" ? "bg-red-50" : status === "warning" ? "bg-amber-50" : status === "normal" ? "bg-green-50" : "bg-amber-50";
           return (
-            <div key={r.id} className={`rounded-2xl border p-4 ${status ? STATUS_COLORS[status] : "bg-white border-gray-200"}`}>
+            <div key={r.id} className={`card flex items-start gap-3 border-l-4 ${borderCls}`}>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${iconBg}`}>
+                🩸
+              </div>
+              <div className="flex-1 min-w-0">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs text-gray-500">{new Date(r.recorded_at).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
@@ -241,6 +263,7 @@ export default function DiabeteClient({ personId, initial }: Props) {
               </div>
               {r.oral_meds_taken && <p className="text-xs text-gray-500 mt-1">💊 Médicaments pris</p>}
               {r.notes && <p className="text-sm text-gray-600 mt-1 italic">{r.notes}</p>}
+              </div>
             </div>
           );
         })}

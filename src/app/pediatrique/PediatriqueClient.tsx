@@ -185,20 +185,43 @@ export default function PediatriqueClient({ personId, ageMonths, initialData }: 
           )}
 
           {records.length === 0 && !showForm && (
-            <div className="card text-center text-gray-500 py-8 text-sm">Aucune mesure enregistrée.</div>
+            <div className="card text-center py-10 space-y-3">
+              <div className="text-5xl">📏</div>
+              <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+              <p className="text-sm text-gray-500 leading-relaxed px-4">
+                Suis la croissance de l&apos;enfant en enregistrant régulièrement taille, poids et périmètre crânien.
+              </p>
+              <button onClick={() => setShowForm(true)}
+                className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+                + Ajouter une mesure
+              </button>
+            </div>
           )}
 
           {[...sorted].reverse().map((r) => (
-            <div key={r.id} className="card flex justify-between items-center">
-              <div>
-                <p className="font-semibold text-sm text-gray-900">{fmt(r.recorded_date)}</p>
-                <p className="text-xs text-gray-500">
-                  {[r.height_cm && `${r.height_cm} cm`, r.weight_kg && `${r.weight_kg} kg`, r.head_cm && `PC ${r.head_cm} cm`].filter(Boolean).join(" · ")}
-                </p>
+            <div key={r.id} className="card flex items-start gap-3 border-l-4 border-l-green-400">
+              <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center text-2xl flex-shrink-0">
+                📏
               </div>
-              <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id} className="text-red-400 text-xs">
-                {deletingId === r.id ? "…" : "Supprimer"}
-              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-2">
+                  <p className="font-semibold text-sm text-gray-900">{fmt(r.recorded_date)}</p>
+                  {r.height_cm && r.weight_kg && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
+                      IMC {bmi(r.weight_kg, r.height_cm)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-3 mt-0.5 flex-wrap">
+                  {r.height_cm && <span className="text-xs text-gray-600 font-medium">📐 {r.height_cm} cm</span>}
+                  {r.weight_kg && <span className="text-xs text-gray-600 font-medium">⚖️ {r.weight_kg} kg</span>}
+                  {r.head_cm && <span className="text-xs text-gray-500">PC {r.head_cm} cm</span>}
+                </div>
+                {r.notes && <p className="text-xs text-gray-400 italic mt-0.5">{r.notes}</p>}
+                <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id} className="text-red-400 text-xs mt-1">
+                  {deletingId === r.id ? "Suppression…" : "Supprimer"}
+                </button>
+              </div>
             </div>
           ))}
         </>
@@ -206,18 +229,46 @@ export default function PediatriqueClient({ personId, ageMonths, initialData }: 
 
       {activeTab === "vaccins" && (
         <div className="space-y-3">
-          <div className="card bg-amber-50 border-amber-100 text-xs text-amber-800">
-            Calendrier PEV recommandé par l&apos;OMS / Côte d&apos;Ivoire.
-            Âge actuel : <strong>{ageMonths < 24 ? `${ageMonths} mois` : `${Math.floor(ageMonths / 12)} ans`}</strong>
-          </div>
-          {PEV.map((step) => (
-            <div key={step.age} className="card space-y-1">
-              <p className="font-semibold text-gray-900 text-sm">{step.age}</p>
-              {step.vaccines.map((v) => (
-                <p key={v} className="text-sm text-gray-600">• {v}</p>
-              ))}
+          <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 flex items-center gap-3">
+            <span className="text-2xl">💉</span>
+            <div>
+              <p className="text-xs font-semibold text-amber-800">Calendrier PEV — OMS / Côte d&apos;Ivoire</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Âge actuel : <strong>{ageMonths < 24 ? `${ageMonths} mois` : `${Math.floor(ageMonths / 12)} ans`}</strong>
+              </p>
             </div>
-          ))}
+          </div>
+          {PEV.map((step, idx) => {
+            const colors = [
+              { border: "border-l-blue-400", icon: "bg-blue-50", badge: "bg-blue-100 text-blue-800" },
+              { border: "border-l-green-400", icon: "bg-green-50", badge: "bg-green-100 text-green-800" },
+              { border: "border-l-teal-400", icon: "bg-teal-50", badge: "bg-teal-100 text-teal-800" },
+              { border: "border-l-cyan-400", icon: "bg-cyan-50", badge: "bg-cyan-100 text-cyan-800" },
+              { border: "border-l-amber-400", icon: "bg-amber-50", badge: "bg-amber-100 text-amber-800" },
+              { border: "border-l-orange-400", icon: "bg-orange-50", badge: "bg-orange-100 text-orange-800" },
+              { border: "border-l-purple-400", icon: "bg-purple-50", badge: "bg-purple-100 text-purple-800" },
+            ][idx % 7];
+            return (
+              <div key={step.age} className={`card flex items-start gap-3 border-l-4 ${colors.border}`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${colors.icon}`}>
+                  💉
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${colors.badge}`}>{step.age}</span>
+                    <span className="text-xs text-gray-400">{step.vaccines.length} vaccin{step.vaccines.length > 1 ? "s" : ""}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {step.vaccines.map((v) => (
+                      <span key={v} className="text-xs bg-white border border-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+                        {v}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

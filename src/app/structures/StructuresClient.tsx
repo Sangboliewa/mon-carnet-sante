@@ -16,11 +16,14 @@ function StructureCard({ s, userPos }: { s: HealthStructure; userPos: GeoPos | n
   const wazeUrl = `https://waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes`;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-2">
+    <div className="card space-y-2">
       <div className="flex justify-between items-start gap-2">
-        <div className="flex-1 min-w-0">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center text-xl flex-shrink-0">
+            {TYPE_ICONS[s.type]}
+          </div>
+          <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-base">{TYPE_ICONS[s.type]}</span>
             <p className="font-semibold text-gray-900 text-sm leading-tight">{s.name}</p>
             {s.urgence && (
               <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 shrink-0">🚨 Urgences</span>
@@ -36,6 +39,7 @@ function StructureCard({ s, userPos }: { s: HealthStructure; userPos: GeoPos | n
               ))}
             </div>
           )}
+        </div>
         </div>
         {dist !== null && <DistanceBadge dist={dist} />}
       </div>
@@ -220,7 +224,17 @@ export default function StructuresClient() {
       {/* Liste */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <p className="text-center text-gray-400 text-sm py-8">Aucune structure ne correspond à ces critères</p>
+          <div className="card text-center py-10 space-y-3">
+            <div className="text-5xl">🏥</div>
+            <p className="font-semibold text-gray-800">Aucune structure trouvée</p>
+            <p className="text-sm text-gray-500 leading-relaxed px-4">
+              Essaie de changer de pays, de type de structure, ou d&apos;effacer le filtre de recherche.
+            </p>
+            <button onClick={() => { setQuery(""); setTypeFilter("Tous"); setUrgenceOnly(false); }}
+              className="inline-block bg-teal-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+              Réinitialiser les filtres
+            </button>
+          </div>
         )}
         {filtered.map(s => (
           <StructureCard key={s.id} s={s} userPos={userPos} />

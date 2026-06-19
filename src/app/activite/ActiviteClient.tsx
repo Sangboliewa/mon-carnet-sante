@@ -33,9 +33,9 @@ const ACTIVITIES: { value: string; label: string; icon: string; met: number }[] 
 ];
 
 const INTENSITIES = [
-  { value: "leger",   label: "Léger",   color: "text-green-600 bg-green-50" },
-  { value: "modere",  label: "Modéré",  color: "text-amber-600 bg-amber-50" },
-  { value: "intense", label: "Intense", color: "text-red-600 bg-red-50" },
+  { value: "leger",   label: "Léger",   color: "text-green-600 bg-green-50", border: "border-l-green-400" },
+  { value: "modere",  label: "Modéré",  color: "text-amber-600 bg-amber-50", border: "border-l-amber-400" },
+  { value: "intense", label: "Intense", color: "text-red-600 bg-red-50",     border: "border-l-red-500"   },
 ];
 
 const INTENSITY_MET_FACTOR: Record<string, number> = { leger: 0.75, modere: 1.0, intense: 1.3 };
@@ -116,6 +116,44 @@ function ImcWidget({ height, weight }: { height: number; weight: number }) {
       <div className="text-right text-xs text-gray-400">
         <p>{height} cm</p>
         <p>{weight} kg</p>
+      </div>
+    </div>
+  );
+}
+
+function WeeklyGoal({ logs }: { logs: ActivityLog[] }) {
+  const GOAL_MIN = 150;
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const mondayStr = monday.toISOString().split("T")[0];
+  const weekMin = logs.filter((l) => l.log_date >= mondayStr).reduce((s, l) => s + l.duration_min, 0);
+  const pct = Math.min(100, Math.round((weekMin / GOAL_MIN) * 100));
+  const r = 28; const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  const color = pct >= 100 ? "#22c55e" : pct >= 60 ? "#f59e0b" : "#3b82f6";
+  return (
+    <div className="card flex items-center gap-4">
+      <div className="relative flex-shrink-0">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r={r} fill="none" stroke="#f3f4f6" strokeWidth="6" />
+          <circle cx="36" cy="36" r={r} fill="none" stroke={color}
+            strokeWidth="6" strokeLinecap="round"
+            strokeDasharray={`${dash} ${circ}`}
+            transform="rotate(-90 36 36)" />
+          <text x="36" y="36" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="bold" fill="#111827">
+            {pct}%
+          </text>
+        </svg>
+      </div>
+      <div className="flex-1">
+        <p className="font-semibold text-gray-800 text-sm">Objectif hebdomadaire</p>
+        <p className="text-xs text-gray-500 mt-0.5"><span className="font-bold text-gray-800">{weekMin}</span> / {GOAL_MIN} min cette semaine</p>
+        <p className="text-xs text-gray-400 mt-0.5">Recommandation OMS</p>
+        {pct >= 100 && <p className="text-xs text-green-600 font-semibold mt-1">🎉 Objectif atteint !</p>}
+        {pct < 100 && weekMin > 0 && (
+          <p className="text-xs text-blue-600 mt-1">{GOAL_MIN - weekMin} min restantes</p>
+        )}
       </div>
     </div>
   );
@@ -203,6 +241,9 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
       {/* IMC */}
       {heightCm && weightKg && <ImcWidget height={heightCm} weight={weightKg} />}
 
+      {/* Objectif semaine */}
+      <WeeklyGoal logs={logs} />
+
       {/* Graphique 7j */}
       <CaloriesChart logs={logs} />
 
@@ -234,20 +275,35 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
       </div>
 
       {/* Liste activités du jour */}
-      {todayLogs.length === 0 && (
-        <p className="text-center text-sm text-gray-400 py-4">Aucune activité ce jour</p>
+      {todayLogs.length === 0 && !showForm && (
+        <div className="card text-center py-10 space-y-3">
+          <div className="text-5xl">🏅</div>
+          <p className="font-semibold text-gray-800">Aucune activité enregistrée ce jour</p>
+          <p className="text-sm text-gray-500 leading-relaxed px-4">
+            Même 15 minutes de marche comptent ! Commence dès maintenant.
+          </p>
+          <button onClick={() => setShowForm(true)}
+            className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+            + Ajouter une activité
+          </button>
+        </div>
       )}
 
       {todayLogs.map((log) => {
         const info = activityInfo(log.activity_type);
         const intensityInfo = INTENSITIES.find((i) => i.value === log.intensity) ?? INTENSITIES[1];
         return (
-          <div key={log.id} className="card flex items-center gap-3">
-            <span className="text-3xl">{info.icon}</span>
+          <div key={log.id} className={`card flex items-start gap-3 border-l-4 ${intensityInfo.border}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${intensityInfo.color.split(" ")[1]}`}>
+              {info.icon}
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-semibold text-gray-900 text-sm">{info.label}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${intensityInfo.color}`}>{intensityInfo.label}</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-gray-900 text-sm">{info.label}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${intensityInfo.color}`}>{intensityInfo.label}</span>
+                </div>
+                <button onClick={() => handleDelete(log.id)} className="text-xs text-red-400 flex-shrink-0">✕</button>
               </div>
               <div className="flex gap-3 mt-0.5 flex-wrap">
                 <span className="text-xs text-gray-500">⏱️ {log.duration_min} min</span>
@@ -257,7 +313,6 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
               </div>
               {log.notes && <p className="text-xs text-gray-400 mt-0.5 italic">{log.notes}</p>}
             </div>
-            <button onClick={() => handleDelete(log.id)} className="text-xs text-red-400 hover:text-red-600 flex-shrink-0">✕</button>
           </div>
         );
       })}

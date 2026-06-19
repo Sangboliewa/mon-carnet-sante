@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentPerson } from "@/lib/getCurrentPerson";
@@ -22,10 +22,10 @@ export default async function ParametresPage() {
   return (
     <div>
       {/* Header */}
-      <div className="bg-health-blue px-4 pt-12 pb-5">
+      <div className="bg-gradient-to-br from-gray-700 to-slate-800 px-4 pt-12 pb-5">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-white/80 text-sm">←</Link>
-          <h1 className="text-white text-xl font-bold">Paramètres</h1>
+          <Link href="/dashboard" className="text-white/80 text-sm">â†</Link>
+          <h1 className="text-white text-xl font-bold">ParamÃ¨tres</h1>
         </div>
       </div>
 
@@ -40,3 +40,4 @@ export default async function ParametresPage() {
     </div>
   );
 }
+

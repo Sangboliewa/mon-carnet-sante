@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -19,10 +19,10 @@ function daysUntil(dateStr: string): number {
 
 function getGreeting(): { text: string; emoji: string } {
   const h = new Date().getHours();
-  if (h < 6)  return { text: "Bonne nuit", emoji: "🌙" };
-  if (h < 12) return { text: "Bonjour", emoji: "🌅" };
-  if (h < 18) return { text: "Bon après-midi", emoji: "☀️" };
-  return { text: "Bonsoir", emoji: "🌆" };
+  if (h < 6)  return { text: "Bonne nuit", emoji: "ðŸŒ™" };
+  if (h < 12) return { text: "Bonjour", emoji: "ðŸŒ…" };
+  if (h < 18) return { text: "Bon aprÃ¨s-midi", emoji: "â˜€ï¸" };
+  return { text: "Bonsoir", emoji: "ðŸŒ†" };
 }
 
 export default async function DashboardPage() {
@@ -73,17 +73,17 @@ export default async function DashboardPage() {
 
   const totalRappels = (vaccinsRappels?.length ?? 0) + (prenatalRappels?.length ?? 0) + (consultRappels?.length ?? 0);
 
-  // ── Score Santé ──────────────────────────────────────────────
+  // â”€â”€ Score SantÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const scoreItems: { label: string; done: boolean; href: string }[] = [];
   if (person) {
-    scoreItems.push({ label: "Groupe sanguin renseigné", done: !!person.blood_type, href: "/profil" });
-    scoreItems.push({ label: "Date de naissance renseignée", done: !!person.date_of_birth, href: "/profil" });
-    scoreItems.push({ label: "Taille & poids renseignés", done: !!(person.height_cm && person.weight_kg), href: "/profil" });
-    scoreItems.push({ label: "Contact d'urgence ajouté", done: !!(person as Record<string, unknown>).emergency_contact_name, href: "/profil" });
-    scoreItems.push({ label: "Première consultation enregistrée", done: (consultTotal ?? 0) > 0, href: "/consultations" });
-    scoreItems.push({ label: "Vaccinations vérifiées", done: (vaccinTotal ?? 0) > 0, href: "/antecedents/vaccins" });
-    scoreItems.push({ label: "Document médical ajouté", done: (docs?.length ?? 0) > 0, href: "/documents" });
-    scoreItems.push({ label: "Rappel médicament configuré", done: (medReminders?.length ?? 0) > 0, href: "/rappels" });
+    scoreItems.push({ label: "Groupe sanguin renseignÃ©", done: !!person.blood_type, href: "/profil" });
+    scoreItems.push({ label: "Date de naissance renseignÃ©e", done: !!person.date_of_birth, href: "/profil" });
+    scoreItems.push({ label: "Taille & poids renseignÃ©s", done: !!(person.height_cm && person.weight_kg), href: "/profil" });
+    scoreItems.push({ label: "Contact d'urgence ajoutÃ©", done: !!(person.emergency_contact_name), href: "/profil" });
+    scoreItems.push({ label: "PremiÃ¨re consultation enregistrÃ©e", done: (consultTotal ?? 0) > 0, href: "/consultations" });
+    scoreItems.push({ label: "Vaccinations vÃ©rifiÃ©es", done: (vaccinTotal ?? 0) > 0, href: "/antecedents/vaccins" });
+    scoreItems.push({ label: "Document mÃ©dical ajoutÃ©", done: (docs?.length ?? 0) > 0, href: "/documents" });
+    scoreItems.push({ label: "Rappel mÃ©dicament configurÃ©", done: (medReminders?.length ?? 0) > 0, href: "/rappels" });
   }
 
   const scorePoints = [15, 10, 10, 10, 20, 20, 10, 5];
@@ -93,39 +93,39 @@ export default async function DashboardPage() {
 
   const greeting = getGreeting();
 
-  // ── Quick access grid ────────────────────────────────────────
+  // â”€â”€ Quick access grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const MODULES_SANTE = [
-    { href: "/antecedents",    icon: "📋", label: "Antécédents",      sub: "Allergies, maladies…" },
-    { href: "/consultations",  icon: "🩺", label: "Consultations",     sub: `${consultTotal ?? 0} enregistrée(s)` },
-    { href: "/resultats-labo", icon: "🔬", label: "Résultats labo",    sub: "Analyses médicales" },
-    { href: "/rappels",        icon: "⏰", label: "Médicaments",       sub: `${medReminders?.length ?? 0} actif(s)` },
-    { href: "/symptomes",      icon: "📝", label: "Symptômes",         sub: "Journal quotidien" },
-    { href: "/pediatrique",    icon: "👶", label: "Pédiatrie",          sub: "Croissance & PEV" },
+    { href: "/antecedents",    icon: "ðŸ“‹", label: "AntÃ©cÃ©dents",      sub: "Allergies, maladiesâ€¦" },
+    { href: "/consultations",  icon: "ðŸ©º", label: "Consultations",     sub: `${consultTotal ?? 0} enregistrÃ©e(s)` },
+    { href: "/resultats-labo", icon: "ðŸ”¬", label: "RÃ©sultats labo",    sub: "Analyses mÃ©dicales" },
+    { href: "/rappels",        icon: "â°", label: "MÃ©dicaments",       sub: `${medReminders?.length ?? 0} actif(s)` },
+    { href: "/symptomes",      icon: "ðŸ“", label: "SymptÃ´mes",         sub: "Journal quotidien" },
+    { href: "/pediatrique",    icon: "ðŸ‘¶", label: "PÃ©diatrie",          sub: "Croissance & PEV" },
   ];
 
   const MODULES_BIENETRE = [
-    { href: "/nutrition",    icon: "🥗", label: "Nutrition",       sub: "Journal alimentaire" },
-    { href: "/activite",     icon: "🏃", label: "Activité",        sub: "Exercices & IMC" },
-    { href: "/sommeil",      icon: "😴", label: "Sommeil",         sub: "Journal de nuits" },
-    { href: "/sante",        icon: "📊", label: "Bilan santé",     sub: "Graphiques & courbes" },
-    { href: "/agenda",       icon: "📅", label: "Agenda",          sub: "Rendez-vous" },
-    { href: "/sync-montre",  icon: "⌚", label: "Montre connectée", sub: "Sync Samsung, Garmin…" },
+    { href: "/nutrition",    icon: "ðŸ¥—", label: "Nutrition",       sub: "Journal alimentaire" },
+    { href: "/activite",     icon: "ðŸƒ", label: "ActivitÃ©",        sub: "Exercices & IMC" },
+    { href: "/sommeil",      icon: "ðŸ˜´", label: "Sommeil",         sub: "Journal de nuits" },
+    { href: "/sante",        icon: "ðŸ“Š", label: "Bilan santÃ©",     sub: "Graphiques & courbes" },
+    { href: "/agenda",       icon: "ðŸ“…", label: "Agenda",          sub: "Rendez-vous" },
+    { href: "/sync-montre",  icon: "âŒš", label: "Montre connectÃ©e", sub: "Sync Samsung, Garminâ€¦" },
   ];
 
   const MODULES_OUTILS = [
-    { href: "/famille",          icon: "👨‍👩‍👧", label: "Famille",       sub: `${allPersons.length} profil(s)` },
-    { href: "/documents",        icon: "📁", label: "Coffre-fort",    sub: `${docs?.length ?? 0} document(s)` },
-    { href: "/export",           icon: "🖨️", label: "Export PDF",     sub: "Carnet imprimable" },
-    { href: "/structures",       icon: "🏥", label: "Structures",     sub: "Hôpitaux & cliniques" },
-    { href: "/teleconsultation", icon: "📹", label: "Téléconsult.",   sub: "En ligne" },
-    { href: "/parametres",       icon: "⚙️", label: "Paramètres",    sub: "Compte & préférences" },
+    { href: "/famille",          icon: "ðŸ‘¨â€ðŸ‘©â€ðŸ‘§", label: "Famille",       sub: `${allPersons.length} profil(s)` },
+    { href: "/documents",        icon: "ðŸ“", label: "Coffre-fort",    sub: `${docs?.length ?? 0} document(s)` },
+    { href: "/export",           icon: "ðŸ–¨ï¸", label: "Export PDF",     sub: "Carnet imprimable" },
+    { href: "/structures",       icon: "ðŸ¥", label: "Structures",     sub: "HÃ´pitaux & cliniques" },
+    { href: "/teleconsultation", icon: "ðŸ“¹", label: "TÃ©lÃ©consult.",   sub: "En ligne" },
+    { href: "/parametres",       icon: "âš™ï¸", label: "ParamÃ¨tres",    sub: "Compte & prÃ©fÃ©rences" },
   ];
 
   return (
     <div>
       {person && <NotificationInit personId={person.id} />}
 
-      {/* ── Header ───────────────────────────────────────────── */}
+      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="bg-gradient-to-br from-health-blue to-indigo-700 px-4 pt-12 pb-8">
         <div className="flex justify-between items-start">
           <div>
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-2 mt-2">
               {person?.blood_type && (
                 <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">
-                  🩸 {person.blood_type}
+                  ðŸ©¸ {person.blood_type}
                 </span>
               )}
               <StreakBadge />
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
           <div className="mt-4 flex items-center gap-2">
             <span className="text-blue-200 text-xs">Profil actif :</span>
             <Link href="/famille" className="text-xs bg-white/20 text-white px-3 py-1 rounded-full font-medium">
-              {person.first_name} {person.last_name ?? ""} · {allPersons.length} profils →
+              {person.first_name} {person.last_name ?? ""} Â· {allPersons.length} profils â†’
             </Link>
           </div>
         )}
@@ -164,48 +164,48 @@ export default async function DashboardPage() {
 
       <div className="px-4 py-5 space-y-4 -mt-2 animate-slide-up">
 
-        {/* ── Bannière onboarding (si pas de profil) ─────────── */}
+        {/* â”€â”€ BanniÃ¨re onboarding (si pas de profil) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {!person && (
           <Link href="/profil" className="block card bg-gradient-to-r from-health-blue to-indigo-600 text-white">
-            <p className="font-bold text-lg">👋 Bienvenue !</p>
-            <p className="text-sm text-blue-100 mt-1">Créez votre profil de santé pour accéder à toutes les fonctionnalités.</p>
+            <p className="font-bold text-lg">ðŸ‘‹ Bienvenue !</p>
+            <p className="text-sm text-blue-100 mt-1">CrÃ©ez votre profil de santÃ© pour accÃ©der Ã  toutes les fonctionnalitÃ©s.</p>
             <div className="mt-3 inline-block bg-white text-health-blue text-sm font-semibold px-4 py-2 rounded-xl">
-              Créer mon profil →
+              CrÃ©er mon profil â†’
             </div>
           </Link>
         )}
 
-        {/* ── Score Santé ─────────────────────────────────────── */}
+        {/* â”€â”€ Score SantÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {person && (
           <HealthScoreCard score={score} items={scoreItems} />
         )}
 
-        {/* ── Conseil du jour ─────────────────────────────────── */}
+        {/* â”€â”€ Conseil du jour â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <DailyTip />
 
-        {/* ── Alertes allergies ───────────────────────────────── */}
+        {/* â”€â”€ Alertes allergies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {allergies && allergies.length > 0 && (
           <div className="card border-red-200 bg-red-50">
-            <p className="text-xs text-red-600 uppercase tracking-wide font-semibold mb-2">⚠️ Allergies graves</p>
+            <p className="text-xs text-red-600 uppercase tracking-wide font-semibold mb-2">âš ï¸ Allergies graves</p>
             {allergies.map((a, i) => (
               <p key={i} className="text-sm font-medium text-red-800">
-                • {a.allergen}{a.severity === "life_threatening" && " (vie en danger)"}
+                â€¢ {a.allergen}{a.severity === "life_threatening" && " (vie en danger)"}
               </p>
             ))}
           </div>
         )}
 
-        {/* ── Rappels 30 jours ────────────────────────────────── */}
+        {/* â”€â”€ Rappels 30 jours â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {totalRappels > 0 && (
           <div className="card border-amber-200 bg-amber-50 space-y-3">
-            <p className="text-xs text-amber-700 uppercase tracking-wide font-semibold">🔔 Rappels — 30 prochains jours</p>
+            <p className="text-xs text-amber-700 uppercase tracking-wide font-semibold">ðŸ”” Rappels â€” 30 prochains jours</p>
 
             {(vaccinsRappels ?? []).map((v, i) => {
               const d = daysUntil(v.next_dose_date!);
               return (
                 <Link key={i} href="/antecedents/vaccins" className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium text-gray-800">💉 {v.vaccine_name}</p>
+                    <p className="text-sm font-medium text-gray-800">ðŸ’‰ {v.vaccine_name}</p>
                     <p className="text-xs text-gray-500">{v.next_dose_date}</p>
                   </div>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d === 0 ? "bg-red-100 text-red-700" : d <= 7 ? "bg-orange-100 text-orange-700" : "bg-yellow-100 text-yellow-700"}`}>
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
               return (
                 <Link key={i} href="/antecedents/grossesse" className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium text-gray-800">🤰 {a.appointment_type}</p>
+                    <p className="text-sm font-medium text-gray-800">ðŸ¤° {a.appointment_type}</p>
                     <p className="text-xs text-gray-500">{a.appointment_date}</p>
                   </div>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d === 0 ? "bg-red-100 text-red-700" : d <= 7 ? "bg-orange-100 text-orange-700" : "bg-yellow-100 text-yellow-700"}`}>
@@ -235,8 +235,8 @@ export default async function DashboardPage() {
               return (
                 <Link key={i} href="/consultations" className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium text-gray-800">🩺 {c.specialty ?? "Suivi"}</p>
-                    <p className="text-xs text-gray-500">{c.doctor_name ?? ""} · {c.follow_up_date}</p>
+                    <p className="text-sm font-medium text-gray-800">ðŸ©º {c.specialty ?? "Suivi"}</p>
+                    <p className="text-xs text-gray-500">{c.doctor_name ?? ""} Â· {c.follow_up_date}</p>
                   </div>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d === 0 ? "bg-red-100 text-red-700" : d <= 7 ? "bg-orange-100 text-orange-700" : "bg-yellow-100 text-yellow-700"}`}>
                     {d === 0 ? "Aujourd'hui" : `Dans ${d}j`}
@@ -247,18 +247,18 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ── Aujourd'hui ─────────────────────────────────────── */}
+        {/* â”€â”€ Aujourd'hui â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {((medReminders?.length ?? 0) > 0 || (agendaToday?.length ?? 0) > 0) && (
           <div>
             <h2 className="section-title">Aujourd&apos;hui</h2>
             <div className="space-y-3">
               {medReminders && medReminders.length > 0 && (
                 <Link href="/rappels" className="card border-indigo-100 bg-indigo-50 block">
-                  <p className="text-xs text-indigo-700 uppercase tracking-wide font-semibold mb-2">💊 Médicaments</p>
+                  <p className="text-xs text-indigo-700 uppercase tracking-wide font-semibold mb-2">ðŸ’Š MÃ©dicaments</p>
                   {medReminders.flatMap((m) =>
                     (m.reminder_times as string[]).map((t) => (
                       <div key={`${m.medication_name}-${t}`} className="flex justify-between items-center py-0.5">
-                        <p className="text-sm text-gray-800">{m.medication_name}{m.dosage ? ` — ${m.dosage}` : ""}</p>
+                        <p className="text-sm text-gray-800">{m.medication_name}{m.dosage ? ` â€” ${m.dosage}` : ""}</p>
                         <span className="text-xs text-indigo-600 font-medium">{t}</span>
                       </div>
                     ))
@@ -267,7 +267,7 @@ export default async function DashboardPage() {
               )}
               {agendaToday && agendaToday.length > 0 && (
                 <Link href="/agenda" className="card border-teal-100 bg-teal-50 block">
-                  <p className="text-xs text-teal-700 uppercase tracking-wide font-semibold mb-2">📅 Rendez-vous</p>
+                  <p className="text-xs text-teal-700 uppercase tracking-wide font-semibold mb-2">ðŸ“… Rendez-vous</p>
                   {agendaToday.map((a, i) => (
                     <div key={i} className="flex justify-between items-center py-0.5">
                       <p className="text-sm text-gray-800">{a.title}</p>
@@ -278,9 +278,9 @@ export default async function DashboardPage() {
               )}
               {activeTraitements && activeTraitements.length > 0 && (
                 <div className="card border-blue-100 bg-blue-50">
-                  <p className="text-xs text-blue-700 uppercase tracking-wide font-semibold mb-2">💊 Traitements en cours</p>
+                  <p className="text-xs text-blue-700 uppercase tracking-wide font-semibold mb-2">ðŸ’Š Traitements en cours</p>
                   {activeTraitements.map((t, i) => (
-                    <p key={i} className="text-sm text-gray-800">• {t.medication_name}</p>
+                    <p key={i} className="text-sm text-gray-800">â€¢ {t.medication_name}</p>
                   ))}
                 </div>
               )}
@@ -288,7 +288,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ── Outils IA ───────────────────────────────────────── */}
+        {/* â”€â”€ Outils IA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="grid grid-cols-2 gap-3">
           <Link href="/assistant" className="card border-blue-200 bg-gradient-to-br from-blue-600 to-indigo-700 flex flex-col gap-2 active:opacity-80">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg">A</div>
@@ -298,20 +298,20 @@ export default async function DashboardPage() {
             </div>
           </Link>
           <Link href="/scan" className="card border-purple-200 bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col gap-2 active:opacity-80">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-2xl">📄</div>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-2xl">ðŸ“„</div>
             <div>
               <p className="font-semibold text-white text-sm">Scanner</p>
-              <p className="text-xs text-purple-200 mt-0.5">Ordonnance & résultats</p>
+              <p className="text-xs text-purple-200 mt-0.5">Ordonnance & rÃ©sultats</p>
             </div>
           </Link>
         </div>
 
-        {/* ── Accès rapides — 3 catégories ────────────────────── */}
+        {/* â”€â”€ AccÃ¨s rapides â€” 3 catÃ©gories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div>
-          <h2 className="section-title mt-2">Santé</h2>
+          <h2 className="section-title mt-2">SantÃ©</h2>
           <div className="grid grid-cols-3 gap-2">
             {MODULES_SANTE.map((item) => (
-              <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:bg-gray-50 p-3">
+              <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:scale-95 transition-transform p-3 bg-blue-50 border-0">
                 <span className="text-2xl">{item.icon}</span>
                 <span className="font-semibold text-gray-900 text-xs leading-tight">{item.label}</span>
                 <span className="text-[10px] text-gray-500 leading-tight">{item.sub}</span>
@@ -321,10 +321,10 @@ export default async function DashboardPage() {
         </div>
 
         <div>
-          <h2 className="section-title mt-2">Bien-être</h2>
+          <h2 className="section-title mt-2">Bien-Ãªtre</h2>
           <div className="grid grid-cols-3 gap-2">
             {MODULES_BIENETRE.map((item) => (
-              <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:bg-gray-50 p-3">
+              <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:scale-95 transition-transform p-3 bg-green-50 border-0">
                 <span className="text-2xl">{item.icon}</span>
                 <span className="font-semibold text-gray-900 text-xs leading-tight">{item.label}</span>
                 <span className="text-[10px] text-gray-500 leading-tight">{item.sub}</span>
@@ -337,7 +337,7 @@ export default async function DashboardPage() {
           <h2 className="section-title mt-2">Outils</h2>
           <div className="grid grid-cols-3 gap-2">
             {MODULES_OUTILS.map((item) => (
-              <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:bg-gray-50 p-3">
+              <Link key={item.href} href={item.href} className="card flex flex-col gap-1 active:scale-95 transition-transform p-3 bg-gray-50 border-0">
                 <span className="text-2xl">{item.icon}</span>
                 <span className="font-semibold text-gray-900 text-xs leading-tight">{item.label}</span>
                 <span className="text-[10px] text-gray-500 leading-tight">{item.sub}</span>
@@ -348,12 +348,12 @@ export default async function DashboardPage() {
 
         {/* Carte urgence */}
         <Link href="/urgence" className="card border-red-200 bg-red-50 flex items-center gap-3 active:opacity-80">
-          <span className="text-3xl">🆘</span>
+          <span className="text-3xl">ðŸ†˜</span>
           <div>
             <p className="font-semibold text-red-800">Carte d&apos;urgence</p>
-            <p className="text-xs text-red-600">Accès rapide · SAMU 185</p>
+            <p className="text-xs text-red-600">AccÃ¨s rapide Â· SAMU 185</p>
           </div>
-          <span className="ml-auto text-red-400 text-lg">→</span>
+          <span className="ml-auto text-red-400 text-lg">â†’</span>
         </Link>
 
         <div className="h-4" />
@@ -361,3 +361,6 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
+
+

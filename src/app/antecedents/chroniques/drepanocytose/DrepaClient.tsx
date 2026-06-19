@@ -233,13 +233,38 @@ export default function DrepaClient({ personId, initial }: Props) {
 
       {/* List */}
       <div className="space-y-3">
-        {records.length === 0 && <p className="text-center text-gray-400 text-sm py-8">Aucun événement enregistré</p>}
-        {records.map(r => (
-          <div key={r.id} className="bg-white rounded-2xl border p-4">
+        {records.length === 0 && (
+          <div className="card text-center py-10 space-y-3">
+            <div className="text-5xl">⚡</div>
+            <p className="font-semibold text-gray-800">Aucun événement enregistré</p>
+            <p className="text-sm text-gray-500 leading-relaxed px-4">
+              Consigne tes crises, transfusions et consultations pour un suivi complet de ta drépanocytose.
+            </p>
+            <button onClick={() => setShowForm(true)}
+              className="inline-block bg-purple-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
+              + Nouvel événement
+            </button>
+          </div>
+        )}
+        {(() => {
+          const TYPE_BORDER: Record<string, string> = {
+            crisis: "border-l-purple-500", transfusion: "border-l-red-500",
+            hospitalization: "border-l-orange-500", consultation: "border-l-blue-500", lab_result: "border-l-teal-500",
+          };
+          const TYPE_BG: Record<string, string> = {
+            crisis: "bg-purple-50", transfusion: "bg-red-50",
+            hospitalization: "bg-orange-50", consultation: "bg-blue-50", lab_result: "bg-teal-50",
+          };
+          return records.map(r => (
+          <div key={r.id} className={`card flex items-start gap-3 border-l-4 ${TYPE_BORDER[r.type] ?? "border-l-gray-200"}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${TYPE_BG[r.type] ?? "bg-gray-50"}`}>
+              {TYPE_ICONS[r.type]}
+            </div>
+            <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-gray-500">{new Date(r.recorded_at).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
-                <p className="font-semibold text-gray-900 mt-0.5">{TYPE_ICONS[r.type]} {TYPE_LABELS[r.type]}</p>
+                <p className="font-semibold text-gray-900 mt-0.5">{TYPE_LABELS[r.type]}</p>
               </div>
               <div className="flex items-center gap-2">
                 {r.hospitalized && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Hospitalisé</span>}
@@ -288,8 +313,10 @@ export default function DrepaClient({ personId, initial }: Props) {
             )}
             {r.treatment_given && <p className="text-xs text-gray-600 mt-1">💊 {r.treatment_given}</p>}
             {r.notes && <p className="text-sm text-gray-600 mt-1 italic">{r.notes}</p>}
+            </div>
           </div>
-        ))}
+          ));
+        })()}
       </div>
     </div>
   );

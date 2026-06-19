@@ -14,12 +14,12 @@ interface SleepLog {
 
 interface Props { personId: string }
 
-const QUALITY_LABELS: Record<number, { label: string; icon: string; color: string }> = {
-  1: { label: "Très mauvais", icon: "😩", color: "text-red-600 bg-red-50" },
-  2: { label: "Mauvais",      icon: "😔", color: "text-orange-600 bg-orange-50" },
-  3: { label: "Moyen",        icon: "😐", color: "text-amber-600 bg-amber-50" },
-  4: { label: "Bon",          icon: "😊", color: "text-green-600 bg-green-50" },
-  5: { label: "Excellent",    icon: "😴", color: "text-health-blue bg-health-blue-light" },
+const QUALITY_LABELS: Record<number, { label: string; icon: string; color: string; border: string; iconBg: string }> = {
+  1: { label: "Très mauvais", icon: "😩", color: "text-red-600 bg-red-50",     border: "border-l-red-500",    iconBg: "bg-red-50" },
+  2: { label: "Mauvais",      icon: "😔", color: "text-orange-600 bg-orange-50", border: "border-l-orange-400", iconBg: "bg-orange-50" },
+  3: { label: "Moyen",        icon: "😐", color: "text-amber-600 bg-amber-50",  border: "border-l-amber-400",  iconBg: "bg-amber-50" },
+  4: { label: "Bon",          icon: "😊", color: "text-green-600 bg-green-50",  border: "border-l-green-400",  iconBg: "bg-green-50" },
+  5: { label: "Excellent",    icon: "😴", color: "text-health-blue bg-health-blue-light", border: "border-l-blue-400", iconBg: "bg-blue-50" },
 };
 
 function todayStr() {
@@ -241,22 +241,40 @@ export default function SommeilClient({ personId }: Props) {
 
       {/* Liste logs 30j */}
       <div className="space-y-3">
-        {logs.length === 0 && (
-          <p className="text-center text-sm text-gray-400 py-4">Aucune nuit enregistrée</p>
+        {logs.length === 0 && !showForm && (
+          <div className="card text-center py-10 space-y-2 border-dashed border-2 border-indigo-100">
+            <p className="text-5xl">😴</p>
+            <p className="font-semibold text-gray-800">Aucune nuit enregistrée</p>
+            <p className="text-xs text-gray-400 px-4">Suis ton sommeil chaque matin pour découvrir tes habitudes et améliorer ta récupération.</p>
+            <button onClick={openAdd}
+              className="inline-block bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl mt-2">
+              + Enregistrer ma première nuit
+            </button>
+          </div>
         )}
         {logs.map((log) => {
           const q = log.quality ? QUALITY_LABELS[log.quality] : null;
+          const borderCls = q?.border ?? "border-l-gray-200";
+          const iconBg = q?.iconBg ?? "bg-gray-50";
           return (
-            <div key={log.id} className="card flex items-center gap-3">
-              <span className="text-2xl">{q?.icon ?? "😴"}</span>
+            <div key={log.id} className={`card flex items-start gap-3 border-l-4 ${borderCls}`}>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${iconBg}`}>
+                {q?.icon ?? "😴"}
+              </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {new Date(log.log_date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
-                  </p>
-                  {q && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${q.color}`}>{q.label}</span>
-                  )}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {new Date(log.log_date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
+                    </p>
+                    {q && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${q.color}`}>{q.label}</span>
+                    )}
+                  </div>
+                  <div className="flex gap-3 items-center flex-shrink-0">
+                    <button onClick={() => openEdit(log)} className="text-xs text-gray-400">Modifier</button>
+                    <button onClick={() => handleDelete(log.id)} className="text-xs text-red-400">Suppr.</button>
+                  </div>
                 </div>
                 <div className="flex gap-3 mt-0.5 flex-wrap">
                   {log.bedtime && log.wake_time && (
@@ -267,10 +285,6 @@ export default function SommeilClient({ personId }: Props) {
                   )}
                 </div>
                 {log.notes && <p className="text-xs text-gray-400 italic mt-0.5">{log.notes}</p>}
-              </div>
-              <div className="flex flex-col gap-1 items-end flex-shrink-0">
-                <button onClick={() => openEdit(log)} className="text-xs text-gray-400 hover:text-gray-600">Modifier</button>
-                <button onClick={() => handleDelete(log.id)} className="text-xs text-red-400 hover:text-red-600">Suppr.</button>
               </div>
             </div>
           );

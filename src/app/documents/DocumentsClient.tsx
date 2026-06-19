@@ -11,6 +11,40 @@ const ALLOWED_EXT = [".pdf", ".jpg", ".jpeg", ".png"];
 const DOC_TYPES = ["Résultats d'analyse", "Ordonnance", "Compte-rendu", "Imagerie", "Autre"];
 const EXAM_TYPES = ["NFS", "Glycémie", "Bilan lipidique", "Créatinine", "TSH", "ECG", "Radiographie", "Échographie", "IRM", "Scanner", "Autre"];
 
+const DOC_ICON: Record<string, string> = {
+  "Résultats d'analyse": "🧪",
+  "Ordonnance": "💊",
+  "Compte-rendu": "📋",
+  "Imagerie": "🩻",
+  "Autre": "📄",
+};
+
+const DOC_COLOR: Record<string, string> = {
+  "Résultats d'analyse": "#a855f7",
+  "Ordonnance": "#22c55e",
+  "Compte-rendu": "#3b82f6",
+  "Imagerie": "#0ea5e9",
+  "Autre": "#6b7280",
+};
+
+const DOC_BG: Record<string, string> = {
+  "Résultats d'analyse": "bg-purple-50",
+  "Ordonnance": "bg-green-50",
+  "Compte-rendu": "bg-blue-50",
+  "Imagerie": "bg-sky-50",
+  "Autre": "bg-gray-50",
+};
+
+function fmtDocDate(d: string) {
+  return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function fmtSize(bytes: number) {
+  if (bytes < 1024) return bytes + " o";
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " Ko";
+  return (bytes / (1024 * 1024)).toFixed(1) + " Mo";
+}
+
 interface Props {
   personId: string;
   userId: string;
@@ -176,28 +210,48 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
         </div>
       )}
 
-      {documents.map((doc) => (
-        <div
-          key={doc.id}
-          onClick={() => router.push(`/documents/${doc.id}`)}
-          className="card flex items-start gap-3 cursor-pointer active:bg-gray-50"
-        >
-          <span className="text-2xl mt-0.5">
-            {doc.file_type === "application/pdf" ? "📄" : "🖼️"}
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 text-sm truncate">{doc.filename}</p>
-            {doc.document_type && <p className="text-xs text-gray-500">{doc.document_type}</p>}
-            {doc.exam_type && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 mt-1">
-                {doc.exam_type}
-              </span>
-            )}
-            {doc.document_date && <p className="text-xs text-gray-400 mt-0.5">{doc.document_date}</p>}
-          </div>
-          <span className="text-gray-400">›</span>
+      {documents.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-500 font-medium">{documents.length} document{documents.length > 1 ? "s" : ""}</p>
         </div>
-      ))}
+      )}
+
+      {documents.map((doc) => {
+        const dtype = doc.document_type ?? "Autre";
+        const icon = DOC_ICON[dtype] ?? "📄";
+        const borderColor = DOC_COLOR[dtype] ?? "#6b7280";
+        const bg = DOC_BG[dtype] ?? "bg-gray-50";
+        return (
+          <div
+            key={doc.id}
+            onClick={() => router.push(`/documents/${doc.id}`)}
+            className={`card flex items-center gap-3 cursor-pointer active:scale-[0.99] transition-transform border-l-4`}
+            style={{ borderLeftColor: borderColor }}
+          >
+            <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center text-2xl flex-shrink-0`}>
+              {icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900 text-sm truncate">{doc.filename}</p>
+              <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                {doc.document_type && (
+                  <span className="text-xs font-medium" style={{ color: borderColor }}>{doc.document_type}</span>
+                )}
+                {doc.exam_type && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    {doc.exam_type}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                {doc.document_date && <p className="text-xs text-gray-400">{fmtDocDate(doc.document_date)}</p>}
+                {doc.file_size_bytes && <p className="text-xs text-gray-300">{fmtSize(doc.file_size_bytes)}</p>}
+              </div>
+            </div>
+            <span className="text-gray-300 text-lg flex-shrink-0">›</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
