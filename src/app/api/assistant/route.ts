@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+﻿import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-  const apiKey = process.env.Groq_API_KEY ?? process.env.GROQ_API_KEY;
+  const rawKey = process.env.Groq_API_KEY ?? process.env.GROQ_API_KEY ?? "";
+  const apiKey = rawKey.replace(/^\uFEFF/, "").trim();
   if (!apiKey) return NextResponse.json({ error: "Clé Groq_API_KEY manquante sur Vercel." }, { status: 503 });
 
   const body = await request.json();
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "llama-3.3-70b-versatile",
         max_tokens: 1024,
         temperature: 0.7,
         stream: false,

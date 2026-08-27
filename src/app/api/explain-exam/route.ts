@@ -5,8 +5,8 @@ export const maxDuration = 15;
 export async function POST(request: NextRequest) {
   const { exam_type, document_type, filename, notes } = await request.json();
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "GROQ_API_KEY manquant" }, { status: 500 });
+  const apiKey = (process.env.Groq_API_KEY ?? process.env.GROQ_API_KEY ?? "").replace(/^﻿/, "").trim();
+  if (!apiKey) return NextResponse.json({ error: "Clé GROQ_API_KEY manquante sur Vercel." }, { status: 503 });
 
   const label = exam_type && exam_type !== "Autre" ? exam_type : (filename ?? "document médical");
 

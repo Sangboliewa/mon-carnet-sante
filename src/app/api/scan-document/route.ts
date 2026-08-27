@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-  const apiKey = process.env.Groq_API_KEY ?? process.env.GROQ_API_KEY;
+  const apiKey = (process.env.Groq_API_KEY ?? process.env.GROQ_API_KEY ?? "").replace(/^﻿/, "").trim();
   if (!apiKey) return NextResponse.json({ error: "Clé GROQ_API_KEY manquante sur Vercel." }, { status: 503 });
 
   const formData = await request.formData();
