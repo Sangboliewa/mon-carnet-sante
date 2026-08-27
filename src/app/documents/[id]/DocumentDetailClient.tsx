@@ -3,6 +3,16 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { MedicalDocument, ExamGlossary } from "@/lib/supabase/types";
 import Disclaimer from "@/components/Disclaimer";
+import { useLang } from "@/lib/i18n/LanguageContext";
+
+interface AIExplanation {
+  title: string;
+  what: string;
+  why: string;
+  how: string;
+  results: string;
+  tips: string;
+}
 
 interface Props {
   document: MedicalDocument;
@@ -11,9 +21,14 @@ interface Props {
 }
 
 export default function DocumentDetailClient({ document, userId, glossary }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<AIExplanation | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   // Log document access (AGENTS.md: reads must be journalised at app layer)
   useEffect(() => {
@@ -32,7 +47,7 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
       .from("medical-documents")
       .createSignedUrl(document.storage_path, 300); // 5-minute URL
     if (error || !data) {
-      setUrlError("Impossible d'ouvrir le document : " + error?.message);
+      setUrlError(t("Impossible d'ouvrir le document : ", "Unable to open document: ") + error?.message);
       return;
     }
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
@@ -42,7 +57,6 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
   async function handleShowExplanation() {
     setShowExplanation(true);
     if (glossary) {
-      // Log the explanation view
       const supabase = createClient();
       await supabase.from("document_explanations").insert({
         document_id: document.id,
@@ -50,6 +64,28 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
         requested_by: userId,
         glossary_id: glossary.id,
       });
+    } else {
+      setAiLoading(true);
+      setAiError(null);
+      try {
+        const res = await fetch("/api/explain-exam", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            exam_type: document.exam_type,
+            document_type: document.document_type,
+            filename: document.filename,
+            notes: document.notes,
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+        setAiExplanation(json.explanation);
+      } catch {
+        setAiError(t("Impossible de générer une explication.", "Unable to generate an explanation."));
+      } finally {
+        setAiLoading(false);
+      }
     }
   }
 
@@ -76,32 +112,32 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
         <div className="grid grid-cols-2 gap-2 text-sm">
           {document.document_type && (
             <>
-              <span className="text-gray-500">Type</span>
+              <span className="text-gray-500">{t("Type", "Type")}</span>
               <span className="font-medium">{document.document_type}</span>
             </>
           )}
           {document.exam_type && (
             <>
-              <span className="text-gray-500">Examen</span>
+              <span className="text-gray-500">{t("Examen", "Exam")}</span>
               <span className="font-medium">{document.exam_type}</span>
             </>
           )}
           {document.document_date && (
             <>
-              <span className="text-gray-500">Date</span>
+              <span className="text-gray-500">{t("Date", "Date")}</span>
               <span className="font-medium">{document.document_date}</span>
             </>
           )}
           {document.issuing_facility && (
             <>
-              <span className="text-gray-500">Établissement</span>
+              <span className="text-gray-500">{t("Établissement", "Facility")}</span>
               <span className="font-medium">{document.issuing_facility}</span>
             </>
           )}
           {document.file_size_bytes && (
             <>
-              <span className="text-gray-500">Taille</span>
-              <span className="font-medium">{Math.round(document.file_size_bytes / 1024)} Ko</span>
+              <span className="text-gray-500">{t("Taille", "Size")}</span>
+              <span className="font-medium">{Math.round(document.file_size_bytes / 1024)} {t("Ko", "KB")}</span>
             </>
           )}
         </div>
@@ -110,14 +146,14 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
 
       {/* Actions */}
       <button onClick={handleViewDocument} className="btn-primary">
-        📂 Ouvrir le document
+        {t("📂 Ouvrir le document", "📂 Open document")}
       </button>
       {urlError && <p className="text-red-600 text-sm">{urlError}</p>}
 
       {/* Comprendre cet examen — chemin 3, aucun LLM */}
       {document.exam_type && !showExplanation && (
         <button onClick={handleShowExplanation} className="btn-secondary">
-          🔍 Comprendre cet examen
+          {t("🔍 Comprendre cet examen", "🔍 Understand this exam")}
         </button>
       )}
 
@@ -135,22 +171,40 @@ export default function DocumentDetailClient({ document, userId, glossary }: Pro
               </div>
               {glossary.normal_ranges && (
                 <div className="bg-health-blue-light rounded-xl p-3">
-                  <p className="text-xs font-semibold text-health-blue mb-1">Valeurs de référence générales</p>
+                  <p className="text-xs font-semibold text-health-blue mb-1">{t("Valeurs de référence générales", "General reference values")}</p>
                   <pre className="text-xs text-gray-700 whitespace-pre-wrap">
                     {JSON.stringify(glossary.normal_ranges, null, 2)}
                   </pre>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="card text-center py-10 space-y-3">
-              <div className="text-5xl">🔍</div>
-              <p className="font-semibold text-gray-800">Pas de fiche disponible</p>
-              <p className="text-sm text-gray-500 leading-relaxed px-4">
-                Aucune fiche explicative n&apos;est encore disponible pour ce type d&apos;examen.
+          ) : aiLoading ? (
+            <div className="card text-center py-8 space-y-2">
+              <div className="text-3xl animate-pulse">🤖</div>
+              <p className="text-sm text-gray-500">{t("Génération de l'explication…", "Generating explanation…")}</p>
+            </div>
+          ) : aiError ? (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{aiError}</div>
+          ) : aiExplanation ? (
+            <div className="card space-y-4">
+              <h2 className="font-bold text-gray-900">{aiExplanation.title}</h2>
+              {[
+                { icon: "📋", label: t("Qu'est-ce que c'est ?", "What is it?"), text: aiExplanation.what },
+                { icon: "🎯", label: t("Pourquoi cet examen ?", "Why this exam?"), text: aiExplanation.why },
+                { icon: "🏥", label: t("Comment ça se passe ?", "How does it work?"), text: aiExplanation.how },
+                { icon: "📊", label: t("Comprendre les résultats", "Understanding results"), text: aiExplanation.results },
+                { icon: "💡", label: t("Conseils pratiques", "Practical tips"), text: aiExplanation.tips },
+              ].map(({ icon, label, text }) => (
+                <div key={label} className="space-y-1">
+                  <p className="text-xs font-semibold text-health-blue flex items-center gap-1">{icon} {label}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
+                </div>
+              ))}
+              <p className="text-xs text-gray-400 italic border-t pt-2">
+                {t("Explication générée par IA — non personnalisée à votre situation.", "AI-generated explanation — not personalized to your situation.")}
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
