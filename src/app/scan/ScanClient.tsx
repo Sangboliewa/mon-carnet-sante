@@ -1,6 +1,31 @@
 "use client";
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
+
+async function pdfToJpeg(file: File): Promise<File> {
+  const pdfjsLib = await import("pdfjs-dist");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/build/pdf.worker.min.mjs",
+    import.meta.url
+  ).toString();
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 2.0 });
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext("2d")!;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (page.render as any)({ canvasContext: ctx, viewport }).promise;
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) { reject(new Error("PDF render failed")); return; }
+      resolve(new File([blob], file.name.replace(/\.pdf$/i, ".jpg"), { type: "image/jpeg" }));
+    }, "image/jpeg", 0.92);
+  });
+}
 
 interface LabResult {
   test_name: string;
@@ -50,6 +75,8 @@ interface Props {
 }
 
 export default function ScanClient({ personId }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -82,17 +109,25 @@ export default function ScanClient({ personId }: Props) {
     setScanning(true);
     setError(null);
     try {
+      let fileToSend = file;
+      if (file.type === "application/pdf") {
+        try {
+          fileToSend = await pdfToJpeg(file);
+        } catch {
+          throw new Error(t("Impossible de convertir le PDF. Essayez une image JPEG ou PNG.", "Failed to convert PDF. Try a JPEG or PNG image."));
+        }
+      }
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", fileToSend);
       const res = await fetch("/api/scan-document", { method: "POST", body: fd });
       const text = await res.text();
-      if (!text) throw new Error("Pas de réponse du serveur. Vérifiez votre connexion.");
+      if (!text) throw new Error(t("Pas de réponse du serveur. Vérifiez votre connexion.", "No response from server. Check your connection."));
       let json: { error?: string; result?: unknown };
-      try { json = JSON.parse(text); } catch { throw new Error("Réponse invalide du serveur."); }
-      if (!res.ok) throw new Error(json.error || "Erreur lors de l'analyse");
+      try { json = JSON.parse(text); } catch { throw new Error(t("Réponse invalide du serveur.", "Invalid server response.")); }
+      if (!res.ok) throw new Error(json.error || t("Erreur lors de l'analyse", "Analysis error"));
       setResult(json.result as typeof result);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Erreur inconnue");
+      setError(e instanceof Error ? e.message : t("Erreur inconnue", "Unknown error"));
     } finally {
       setScanning(false);
     }
@@ -167,7 +202,7 @@ export default function ScanClient({ personId }: Props) {
 
       setSaved(true);
     } catch {
-      setError("Erreur lors de la sauvegarde.");
+      setError(t("Erreur lors de la sauvegarde.", "Save error."));
     } finally {
       setSaving(false);
     }
@@ -182,10 +217,10 @@ export default function ScanClient({ personId }: Props) {
   }
 
   const docTypeLabel: Record<string, string> = {
-    ordonnance: "Ordonnance",
-    resultat_labo: "Résultat de laboratoire",
-    compte_rendu: "Compte-rendu médical",
-    autre: "Document médical",
+    ordonnance: t("Ordonnance", "Prescription"),
+    resultat_labo: t("Résultat de laboratoire", "Lab Result"),
+    compte_rendu: t("Compte-rendu médical", "Medical Report"),
+    autre: t("Document médical", "Medical Document"),
   };
 
   return (
@@ -194,13 +229,21 @@ export default function ScanClient({ personId }: Props) {
       {!result && (
         <div className="bg-white rounded-2xl shadow-sm p-4 space-y-3">
           <p className="text-sm text-gray-500 text-center">
-            Photographiez ou importez une ordonnance, un résultat d&apos;examen ou un compte-rendu (JPEG, PNG, PDF)
+            {t("Photographiez ou importez une ordonnance, un résultat d'examen ou un compte-rendu (JPEG, PNG, PDF)", "Photograph or import a prescription, exam result or medical report (JPEG, PNG, PDF)")}
           </p>
 
-          {preview && (
+          {file && preview && (
             <div className="relative rounded-xl overflow-hidden border border-gray-200">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={preview} alt="Document scanné" className="w-full max-h-64 object-contain bg-gray-50" />
+              {file.type === "application/pdf" ? (
+                <div className="flex flex-col items-center justify-center py-8 bg-gray-50 text-gray-600 gap-2">
+                  <span className="text-4xl">📄</span>
+                  <span className="text-sm font-medium">{file.name}</span>
+                  <span className="text-xs text-gray-400">{t("PDF — sera converti en image avant analyse", "PDF — will be converted to image before analysis")}</span>
+                </div>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={preview} alt={t("Document scanné", "Scanned document")} className="w-full max-h-64 object-contain bg-gray-50" />
+              )}
               <button
                 onClick={reset}
                 className="absolute top-2 right-2 bg-white rounded-full p-1 shadow text-gray-500 text-xs"
@@ -215,13 +258,13 @@ export default function ScanClient({ personId }: Props) {
               onClick={() => cameraInput.current?.click()}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-700 text-sm font-medium"
             >
-              📷 Caméra
+              📷 {t("Caméra", "Camera")}
             </button>
             <button
               onClick={() => fileInput.current?.click()}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-700 text-sm font-medium"
             >
-              📁 Importer
+              📁 {t("Importer", "Import")}
             </button>
           </div>
 
@@ -234,13 +277,13 @@ export default function ScanClient({ personId }: Props) {
               disabled={scanning}
               className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm disabled:opacity-60"
             >
-              {scanning ? "Analyse en cours…" : "🔍 Analyser le document"}
+              {scanning ? t("Analyse en cours…", "Analyzing…") : t("🔍 Analyser le document", "🔍 Analyze document")}
             </button>
           )}
 
           {scanning && (
             <div className="text-center text-sm text-gray-500 animate-pulse">
-              Claude analyse votre document…
+              {t("Claude analyse votre document…", "Claude is analyzing your document…")}
             </div>
           )}
         </div>
@@ -273,7 +316,7 @@ export default function ScanClient({ personId }: Props) {
             <div className="card border-l-4 border-l-blue-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
                 <input type="checkbox" checked={saveTraitements} onChange={e => setSaveTraitements(e.target.checked)} className="w-4 h-4 accent-blue-600" />
-                <span className="font-semibold text-gray-800">💊 Traitements ({result.traitements.length})</span>
+                <span className="font-semibold text-gray-800">💊 {t("Traitements", "Treatments")} ({result.traitements.length})</span>
               </label>
               <ul className="space-y-2">
                 {result.traitements.map((t, i) => (
@@ -293,7 +336,7 @@ export default function ScanClient({ personId }: Props) {
             <div className="card border-l-4 border-l-purple-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
                 <input type="checkbox" checked={saveLabo} onChange={e => setSaveLabo(e.target.checked)} className="w-4 h-4 accent-purple-600" />
-                <span className="font-semibold text-gray-800">🧪 Résultats labo ({result.resultats_labo.length})</span>
+                <span className="font-semibold text-gray-800">🧪 {t("Résultats labo", "Lab Results")} ({result.resultats_labo.length})</span>
               </label>
               <ul className="space-y-2">
                 {result.resultats_labo.map((r, i) => (
@@ -313,7 +356,7 @@ export default function ScanClient({ personId }: Props) {
                       )}
                       {(r.ref_min !== null || r.ref_max !== null) && (
                         <div className="text-xs text-gray-400">
-                          Réf: {r.ref_min ?? "?"} – {r.ref_max ?? "?"}
+                          {t("Réf", "Ref")}: {r.ref_min ?? "?"} – {r.ref_max ?? "?"}
                         </div>
                       )}
                     </div>
@@ -328,7 +371,7 @@ export default function ScanClient({ personId }: Props) {
             <div className="card border-l-4 border-l-orange-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
                 <input type="checkbox" checked={saveMaladies} onChange={e => setSaveMaladies(e.target.checked)} className="w-4 h-4 accent-orange-600" />
-                <span className="font-semibold text-gray-800">🏥 Diagnostics ({result.maladies.length})</span>
+                <span className="font-semibold text-gray-800">🏥 {t("Diagnostics", "Diagnoses")} ({result.maladies.length})</span>
               </label>
               <ul className="space-y-2">
                 {result.maladies.map((m, i) => (
@@ -346,7 +389,7 @@ export default function ScanClient({ personId }: Props) {
             <div className="card border-l-4 border-l-red-400">
               <label className="flex items-center gap-2 mb-3 cursor-pointer">
                 <input type="checkbox" checked={saveAllergies} onChange={e => setSaveAllergies(e.target.checked)} className="w-4 h-4 accent-red-600" />
-                <span className="font-semibold text-gray-800">⚠️ Allergies ({result.allergies.length})</span>
+                <span className="font-semibold text-gray-800">⚠️ {t("Allergies", "Allergies")} ({result.allergies.length})</span>
               </label>
               <ul className="space-y-2">
                 {result.allergies.map((a, i) => (
@@ -363,21 +406,21 @@ export default function ScanClient({ personId }: Props) {
           {result.traitements.length === 0 && result.resultats_labo.length === 0 &&
            result.maladies.length === 0 && result.allergies.length === 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-700 text-center">
-              Aucune donnée extractible détectée dans ce document.
+              {t("Aucune donnée extractible détectée dans ce document.", "No extractable data detected in this document.")}
             </div>
           )}
 
           {/* Actions */}
           <div className="flex gap-2">
             <button onClick={reset} className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium">
-              Recommencer
+              {t("Recommencer", "Start over")}
             </button>
             <button
               onClick={handleSave}
               disabled={saving || (result.traitements.length === 0 && result.resultats_labo.length === 0 && result.maladies.length === 0 && result.allergies.length === 0)}
               className="flex-1 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm disabled:opacity-50"
             >
-              {saving ? "Sauvegarde…" : "✅ Enregistrer"}
+              {saving ? t("Sauvegarde…", "Saving…") : t("✅ Enregistrer", "✅ Save")}
             </button>
           </div>
         </div>
@@ -387,12 +430,12 @@ export default function ScanClient({ personId }: Props) {
       {saved && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-3">
           <div className="text-4xl">✅</div>
-          <p className="font-semibold text-green-800">Données enregistrées avec succès !</p>
+          <p className="font-semibold text-green-800">{t("Données enregistrées avec succès !", "Data saved successfully!")}</p>
           <p className="text-sm text-green-700">
-            Les informations ont été ajoutées à votre carnet de santé.
+            {t("Les informations ont été ajoutées à votre carnet de santé.", "The information has been added to your health record.")}
           </p>
           <button onClick={reset} className="mt-2 px-6 py-2 rounded-xl bg-green-600 text-white text-sm font-medium">
-            Scanner un autre document
+            {t("Scanner un autre document", "Scan another document")}
           </button>
         </div>
       )}
