@@ -3,26 +3,6 @@ import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useLang } from "@/lib/i18n/LanguageContext";
 
-async function pdfToJpeg(file: File): Promise<File> {
-  const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-  const page = await pdf.getPage(1);
-  const viewport = page.getViewport({ scale: 2.0 });
-  const canvas = document.createElement("canvas");
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  const ctx = canvas.getContext("2d")!;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (page.render as any)({ canvasContext: ctx, viewport }).promise;
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(blob => {
-      if (!blob) { reject(new Error("PDF render failed")); return; }
-      resolve(new File([blob], file.name.replace(/\.pdf$/i, ".jpg"), { type: "image/jpeg" }));
-    }, "image/jpeg", 0.92);
-  });
-}
 
 interface LabResult {
   test_name: string;
@@ -106,16 +86,8 @@ export default function ScanClient({ personId }: Props) {
     setScanning(true);
     setError(null);
     try {
-      let fileToSend = file;
-      if (file.type === "application/pdf") {
-        try {
-          fileToSend = await pdfToJpeg(file);
-        } catch {
-          throw new Error(t("Impossible de convertir le PDF. Essayez une image JPEG ou PNG.", "Failed to convert PDF. Try a JPEG or PNG image."));
-        }
-      }
       const fd = new FormData();
-      fd.append("file", fileToSend);
+      fd.append("file", file);
       const res = await fetch("/api/scan-document", { method: "POST", body: fd });
       const text = await res.text();
       if (!text) throw new Error(t("Pas de réponse du serveur. Vérifiez votre connexion.", "No response from server. Check your connection."));
