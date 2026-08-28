@@ -1,56 +1,75 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const STEPS = [
-  {
-    icon: "✅",
-    color: "from-green-500 to-teal-500",
-    title: "Profil créé !",
-    body: "Ton profil de santé personnel est maintenant actif. Toutes tes données médicales seront sécurisées et accessibles à tout moment.",
-    cta: null,
-    ctaHref: null,
-  },
-  {
-    icon: "📋",
-    color: "from-blue-500 to-indigo-600",
-    title: "Ajoute tes antécédents",
-    body: "Renseigne tes allergies, maladies chroniques et vaccinations. Ces informations seront visibles sur ta carte d'urgence.",
-    cta: "Compléter mes antécédents",
-    ctaHref: "/antecedents",
-  },
-  {
-    icon: "⏰",
-    color: "from-indigo-500 to-purple-600",
-    title: "Configure tes rappels",
-    body: "Ne rate plus jamais un médicament. Configure des rappels quotidiens pour chaque traitement en cours.",
-    cta: "Configurer les rappels",
-    ctaHref: "/rappels",
-  },
-  {
-    icon: "🤖",
-    color: "from-blue-600 to-cyan-600",
-    title: "Rencontre ABIBA",
-    body: "ABIBA est ton assistante santé IA. Elle t'aide à comprendre tes résultats d'examens, tes médicaments, et répond à tes questions de santé.",
-    cta: "Discuter avec ABIBA",
-    ctaHref: "/assistant",
-  },
-  {
-    icon: "👨‍👩‍👧",
-    color: "from-teal-500 to-green-600",
-    title: "Ajoute ta famille",
-    body: "Gère la santé de toute ta famille depuis un seul compte. Chaque membre a son profil et son carnet de santé indépendant.",
-    cta: "Gérer ma famille",
-    ctaHref: "/famille",
-  },
-];
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface Props {
   firstName: string;
 }
 
 export default function BienvenueClient({ firstName }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
+
+  const STEPS = [
+    {
+      icon: "✅",
+      color: "from-green-500 to-teal-500",
+      title: t("Profil créé !", "Profile created!"),
+      body: t(
+        "Ton profil de santé personnel est maintenant actif. Toutes tes données médicales seront sécurisées et accessibles à tout moment.",
+        "Your personal health profile is now active. All your medical data will be secured and accessible at any time."
+      ),
+      cta: null,
+      ctaHref: null,
+    },
+    {
+      icon: "📋",
+      color: "from-blue-500 to-indigo-600",
+      title: t("Ajoute tes antécédents", "Add your medical history"),
+      body: t(
+        "Renseigne tes allergies, maladies chroniques et vaccinations. Ces informations seront visibles sur ta carte d'urgence.",
+        "Enter your allergies, chronic conditions and vaccinations. This information will appear on your emergency card."
+      ),
+      cta: t("Compléter mes antécédents", "Complete my medical history"),
+      ctaHref: "/antecedents",
+    },
+    {
+      icon: "⏰",
+      color: "from-indigo-500 to-purple-600",
+      title: t("Configure tes rappels", "Set up your reminders"),
+      body: t(
+        "Ne rate plus jamais un médicament. Configure des rappels quotidiens pour chaque traitement en cours.",
+        "Never miss a medication again. Set up daily reminders for each ongoing treatment."
+      ),
+      cta: t("Configurer les rappels", "Configure reminders"),
+      ctaHref: "/rappels",
+    },
+    {
+      icon: "🤖",
+      color: "from-blue-600 to-cyan-600",
+      title: t("Rencontre By'", "Meet By'"),
+      body: t(
+        "By' est ton assistante santé IA. Elle t'aide à comprendre tes résultats d'examens, tes médicaments, et répond à tes questions de santé.",
+        "By' is your AI health assistant. She helps you understand your test results, medications, and answers your health questions."
+      ),
+      cta: t("Discuter avec By'", "Chat with By'"),
+      ctaHref: "/assistant",
+    },
+    {
+      icon: "👨‍👩‍👧",
+      color: "from-teal-500 to-green-600",
+      title: t("Ajoute ta famille", "Add your family"),
+      body: t(
+        "Gère la santé de toute ta famille depuis un seul compte. Chaque membre a son profil et son carnet de santé indépendant.",
+        "Manage your whole family's health from a single account. Each member has their own independent profile and health record."
+      ),
+      cta: t("Gérer ma famille", "Manage my family"),
+      ctaHref: "/famille",
+    },
+  ];
+
   const [step, setStep] = useState(0);
   const router = useRouter();
   const current = STEPS[step];
@@ -92,7 +111,7 @@ export default function BienvenueClient({ firstName }: Props) {
 
         {step === 0 && (
           <p className="text-health-blue font-semibold text-sm mb-2 text-center">
-            Bienvenue {firstName} 🎉
+            {t("Bienvenue", "Welcome")} {firstName} 🎉
           </p>
         )}
 
@@ -109,7 +128,7 @@ export default function BienvenueClient({ firstName }: Props) {
             onClick={next}
             className={current.ctaHref ? "btn-secondary" : "btn-primary"}
           >
-            {isLast ? "🏠 Aller au tableau de bord" : "Continuer →"}
+            {isLast ? t("🏠 Aller au tableau de bord", "🏠 Go to dashboard") : t("Continuer →", "Continue →")}
           </button>
         </div>
       </div>
@@ -120,7 +139,7 @@ export default function BienvenueClient({ firstName }: Props) {
           onClick={() => router.push("/dashboard")}
           className="text-sm text-gray-400 underline underline-offset-2"
         >
-          Passer le guide
+          {t("Passer le guide", "Skip the guide")}
         </button>
       </div>
     </div>

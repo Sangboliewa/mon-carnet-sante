@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
     title: "Carnet Santé",
   },
 };
@@ -32,10 +31,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("locale")?.value;
   const initialLocale: Locale = localeCookie === "en" ? "en" : "fr";
+  const themeCookie = cookieStore.get("theme")?.value ?? "system";
+  const htmlClass = cn("font-sans", geist.variable, themeCookie === "dark" ? "dark" : "");
 
   return (
-    <html lang={initialLocale} className={cn("font-sans", geist.variable)}>
+    <html lang={initialLocale} className={htmlClass}>
       <head>
+        {/* Thème sombre — évite le flash au chargement */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var t = document.cookie.match(/(?:^|; )theme=([^;]*)/);
+            var v = t ? decodeURIComponent(t[1]) : 'system';
+            if (v === 'dark') document.documentElement.classList.add('dark');
+            else if (v === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+              document.documentElement.classList.add('dark');
+          })();
+        `}} />
         {/* PWA iOS */}
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

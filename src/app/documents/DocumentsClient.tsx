@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { MedicalDocument } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png"];
@@ -53,6 +54,8 @@ interface Props {
 
 export default function DocumentsClient({ personId, userId, initialData }: Props) {
   const router = useRouter();
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [documents, setDocuments] = useState<MedicalDocument[]>(initialData);
   const [showUpload, setShowUpload] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -72,12 +75,12 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
     setFileError(null);
     if (!f) { setFile(null); return; }
     if (!ALLOWED_TYPES.includes(f.type)) {
-      setFileError(`Format non accepté. Utilisez : ${ALLOWED_EXT.join(", ")}`);
+      setFileError(t(`Format non accepté. Utilisez : ${ALLOWED_EXT.join(", ")}`, `Unsupported format. Use: ${ALLOWED_EXT.join(", ")}`));
       setFile(null);
       return;
     }
     if (f.size > MAX_SIZE) {
-      setFileError("Fichier trop volumineux (max 10 Mo).");
+      setFileError(t("Fichier trop volumineux (max 10 Mo).", "File too large (max 10 MB)."));
       setFile(null);
       return;
     }
@@ -112,7 +115,7 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
       .single();
 
     if (insertError || !doc) {
-      setUploadError("Erreur lors de la création du document : " + insertError?.message);
+      setUploadError(t("Erreur lors de la création du document : ", "Error creating document: ") + insertError?.message);
       setUploading(false);
       return;
     }
@@ -126,7 +129,7 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
     if (storageError) {
       // Rollback
       await supabase.from("medical_documents").delete().eq("id", doc.id);
-      setUploadError("Erreur lors de l'upload : " + storageError.message);
+      setUploadError(t("Erreur lors de l'upload : ", "Upload error: ") + storageError.message);
       setUploading(false);
       return;
     }
@@ -147,13 +150,13 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
   return (
     <div className="px-4 py-5 space-y-4">
       <button onClick={() => setShowUpload((v) => !v)} className="btn-primary">
-        {showUpload ? "Annuler" : "📤 Ajouter un document"}
+        {showUpload ? t("Annuler", "Cancel") : t("📤 Ajouter un document", "📤 Add a document")}
       </button>
 
       {showUpload && (
         <form onSubmit={handleUpload} className="card space-y-3">
           <div>
-            <label className="label">Fichier * (PDF, JPG, PNG — max 10 Mo)</label>
+            <label className="label">{t("Fichier * (PDF, JPG, PNG — max 10 Mo)", "File * (PDF, JPG, PNG — max 10 MB)")}</label>
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
@@ -162,37 +165,37 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
               className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-health-blue-light file:text-health-blue file:font-medium"
             />
             {fileError && <p className="text-red-600 text-xs mt-1">{fileError}</p>}
-            {file && <p className="text-green-600 text-xs mt-1">✓ {file.name} ({Math.round(file.size / 1024)} Ko)</p>}
+            {file && <p className="text-green-600 text-xs mt-1">✓ {file.name} ({Math.round(file.size / 1024)} {t("Ko", "KB")})</p>}
           </div>
           <div>
-            <label className="label">Type de document</label>
+            <label className="label">{t("Type de document", "Document type")}</label>
             <select className="input-field" value={meta.document_type} onChange={(e) => setMeta((m) => ({ ...m, document_type: e.target.value }))}>
-              <option value="">— Choisir —</option>
-              {DOC_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              <option value="">{t("— Choisir —", "— Choose —")}</option>
+              {DOC_TYPES.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Type d&apos;examen</label>
+            <label className="label">{t("Type d'examen", "Exam type")}</label>
             <select className="input-field" value={meta.exam_type} onChange={(e) => setMeta((m) => ({ ...m, exam_type: e.target.value }))}>
-              <option value="">— Choisir —</option>
-              {EXAM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              <option value="">{t("— Choisir —", "— Choose —")}</option>
+              {EXAM_TYPES.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Date du document</label>
+            <label className="label">{t("Date du document", "Document date")}</label>
             <input type="date" className="input-field" value={meta.document_date} onChange={(e) => setMeta((m) => ({ ...m, document_date: e.target.value }))} />
           </div>
           <div>
-            <label className="label">Établissement émetteur</label>
-            <input className="input-field" placeholder="ex : CHU Yopougon" value={meta.issuing_facility} onChange={(e) => setMeta((m) => ({ ...m, issuing_facility: e.target.value }))} />
+            <label className="label">{t("Établissement émetteur", "Issuing facility")}</label>
+            <input className="input-field" placeholder={t("ex : CHU Yopougon", "e.g. General Hospital")} value={meta.issuing_facility} onChange={(e) => setMeta((m) => ({ ...m, issuing_facility: e.target.value }))} />
           </div>
           <div>
-            <label className="label">Notes</label>
+            <label className="label">{t("Notes", "Notes")}</label>
             <textarea className="input-field resize-none" rows={2} value={meta.notes} onChange={(e) => setMeta((m) => ({ ...m, notes: e.target.value }))} />
           </div>
           {uploadError && <p className="text-red-600 text-sm">{uploadError}</p>}
           <button type="submit" disabled={uploading || !file} className="btn-primary">
-            {uploading ? "Upload en cours…" : "Téléverser le document"}
+            {uploading ? t("Upload en cours…", "Uploading…") : t("Téléverser le document", "Upload document")}
           </button>
         </form>
       )}
@@ -200,19 +203,19 @@ export default function DocumentsClient({ personId, userId, initialData }: Props
       {documents.length === 0 && !showUpload && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">📁</div>
-          <p className="font-semibold text-gray-800">Ton coffre-fort est vide</p>
+          <p className="font-semibold text-gray-800">{t("Ton coffre-fort est vide", "Your vault is empty")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
-            Stocke ordonnances, résultats et bilans en sécurité. Accessibles partout, même sans connexion.
+            {t("Stocke ordonnances, résultats et bilans en sécurité. Accessibles partout, même sans connexion.", "Store prescriptions, results and reports securely. Accessible anywhere, even offline.")}
           </p>
           <button onClick={() => setShowUpload(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Ajouter un document
+            {t("+ Ajouter un document", "+ Add a document")}
           </button>
         </div>
       )}
 
       {documents.length > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500 font-medium">{documents.length} document{documents.length > 1 ? "s" : ""}</p>
+          <p className="text-xs text-gray-500 font-medium">{documents.length} {t("document", "document")}{documents.length > 1 ? "s" : ""}</p>
         </div>
       )}
 

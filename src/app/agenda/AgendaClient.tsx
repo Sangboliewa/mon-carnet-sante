@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Appointment, AppointmentInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 const SPECIALTIES = [
   "Médecine générale", "Cardiologie", "Dermatologie", "Gynécologie",
@@ -61,6 +62,8 @@ const BLANK: Omit<AppointmentInsert, "person_id"> = {
 interface Props { personId: string; initialData: Appointment[] }
 
 export default function AgendaClient({ personId, initialData }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [items, setItems] = useState<Appointment[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK);
@@ -121,7 +124,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
       )}
 
       <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
-        {showForm ? "Annuler" : "+ Ajouter un rendez-vous"}
+        {showForm ? t("Annuler", "Cancel") : t("+ Ajouter un rendez-vous", "+ Add appointment")}
       </button>
 
       {showForm && (
@@ -170,7 +173,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
             <textarea name="notes" className="input-field resize-none" rows={2} value={form.notes ?? ""} onChange={handleChange} />
           </div>
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
           </button>
         </form>
       )}
@@ -189,7 +192,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">{filter === "upcoming" ? "📅" : "🗓️"}</div>
           <p className="font-semibold text-gray-800">
-            {filter === "upcoming" ? "Aucun rendez-vous à venir" : "Aucun rendez-vous enregistré"}
+            {filter === "upcoming" ? t("Aucun rendez-vous à venir", "No upcoming appointments") : t("Aucun rendez-vous enregistré", "No appointments recorded")}
           </p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
             {filter === "upcoming"
@@ -200,7 +203,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
             onClick={() => setShowForm(true)}
             className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2"
           >
-            + Ajouter un rendez-vous
+            {t("+ Ajouter un rendez-vous", "+ Add appointment")}
           </button>
         </div>
       )}
@@ -262,7 +265,7 @@ export default function AgendaClient({ personId, initialData }: Props) {
                   {togglingId === appt.id ? "…" : appt.completed ? "Marquer à faire" : "Marquer effectué"}
                 </button>
                 <button onClick={() => handleDelete(appt.id)} disabled={deletingId === appt.id} className="text-xs text-red-400">
-                  {deletingId === appt.id ? "…" : "Supprimer"}
+                  {deletingId === appt.id ? "…" : t("Supprimer", "Delete")}
                 </button>
               </div>
               </div>

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { MenstrualCycle, MenstrualCycleInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 const FLOW_LABELS: Record<string, string> = {
   light: "Légère",
@@ -55,6 +56,8 @@ interface Props {
 }
 
 export default function MenstruesClient({ personId, initialData }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [items, setItems] = useState<MenstrualCycle[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK);
@@ -119,7 +122,7 @@ export default function MenstruesClient({ personId, initialData }: Props) {
       )}
 
       <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
-        {showForm ? "Annuler" : "+ Ajouter un cycle"}
+        {showForm ? t("Annuler", "Cancel") : t("+ Ajouter un cycle", "+ Add a cycle")}
       </button>
 
       {showForm && (
@@ -153,7 +156,7 @@ export default function MenstruesClient({ personId, initialData }: Props) {
             <textarea name="notes" className="input-field resize-none" rows={2} value={form.notes ?? ""} onChange={handleChange} />
           </div>
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
           </button>
         </form>
       )}
@@ -161,13 +164,13 @@ export default function MenstruesClient({ personId, initialData }: Props) {
       {items.length === 0 && !showForm && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">🌸</div>
-          <p className="font-semibold text-gray-800">Aucun cycle enregistré</p>
+          <p className="font-semibold text-gray-800">{t("Aucun cycle enregistré", "No cycles recorded")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
             Suis tes cycles menstruels pour mieux comprendre ton corps et prédire ton prochain cycle.
           </p>
           <button onClick={() => setShowForm(true)}
             className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Ajouter un cycle
+            {t("+ Ajouter un cycle", "+ Add a cycle")}
           </button>
         </div>
       )}
@@ -198,7 +201,7 @@ export default function MenstruesClient({ personId, initialData }: Props) {
               disabled={deletingId === item.id}
               className="text-red-400 text-xs mt-2"
             >
-              {deletingId === item.id ? "Suppression…" : "Supprimer"}
+              {deletingId === item.id ? t("Suppression…", "Deleting…") : t("Supprimer", "Delete")}
             </button>
           </div>
         </div>

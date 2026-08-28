@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n, type Locale } from "@/lib/i18n/context";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface Prefs {
   language: string;
@@ -25,12 +26,6 @@ interface Props {
 const LANGUAGES = [
   { value: "fr", label: "Français" },
   { value: "en", label: "English" },
-];
-
-const THEMES = [
-  { value: "light", label: "Clair" },
-  { value: "dark", label: "Sombre" },
-  { value: "system", label: "Système" },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -71,6 +66,15 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 export default function ParametresClient({ userId, email, firstName, lastName, prefs: initialPrefs, appVersion }: Props) {
   const router = useRouter();
   const { setLocale } = useI18n();
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
+
+  const THEMES = [
+    { value: "light", label: t("Clair", "Light") },
+    { value: "dark", label: t("Sombre", "Dark") },
+    { value: "system", label: t("Système", "System") },
+  ];
+
   const defaultPrefs: Prefs = {
     language: "fr", theme: "light",
     notif_reminders: true, notif_agenda: true,
@@ -91,9 +95,26 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
     setPrefs(next);
     setSaving(true);
     setSaved(false);
+
     if (key === "language" && (value === "fr" || value === "en")) {
       setLocale(value as Locale);
     }
+
+    if (key === "theme") {
+      const theme = value as string;
+      document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
+      const html = document.documentElement;
+      if (theme === "dark") {
+        html.classList.add("dark");
+      } else if (theme === "light") {
+        html.classList.remove("dark");
+      } else {
+        // system
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) html.classList.add("dark");
+        else html.classList.remove("dark");
+      }
+    }
+
     const supabase = createClient();
     await supabase.from("user_preferences").upsert({ user_id: userId, ...next });
     setSaving(false);
@@ -103,8 +124,8 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
 
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
-    if (pwForm.next !== pwForm.confirm) { setPwError("Les mots de passe ne correspondent pas."); return; }
-    if (pwForm.next.length < 8) { setPwError("Minimum 8 caractères."); return; }
+    if (pwForm.next !== pwForm.confirm) { setPwError(t("Les mots de passe ne correspondent pas.", "Passwords do not match.")); return; }
+    if (pwForm.next.length < 8) { setPwError(t("Minimum 8 caractères.", "Minimum 8 characters.")); return; }
     setPwLoading(true); setPwError(null); setPwSuccess(false);
     const supabase = createClient();
     const { error } = await supabase.auth.updateUser({ password: pwForm.next });
@@ -123,7 +144,6 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
   async function handleDeleteAccount() {
     setDeleteLoading(true);
     const supabase = createClient();
-    // Supprimer accès partagés puis profils (cascade supprime données médicales)
     await supabase.from("person_access").delete().eq("user_id", userId);
     await supabase.from("user_preferences").delete().eq("user_id", userId);
     await supabase.from("persons").delete().eq("created_by", userId);
@@ -133,25 +153,22 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
 
   return (
     <div className="px-4 py-5 space-y-6">
-      {/* Indicateur sauvegarde */}
-      {saving && <div className="text-xs text-center text-gray-400 animate-pulse">Enregistrement…</div>}
-      {saved && <div className="text-xs text-center text-health-green font-medium">✓ Enregistré</div>}
+      {saving && <div className="text-xs text-center text-gray-400 animate-pulse">{t("Enregistrement…", "Saving…")}</div>}
+      {saved && <div className="text-xs text-center text-health-green font-medium">✓ {t("Enregistré", "Saved")}</div>}
 
-      {/* Compte */}
-      <Section title="Compte">
+      <Section title={t("Compte", "Account")}>
         <Row label="Email" sub={email}>
-          <span className="text-xs text-gray-400">Non modifiable</span>
+          <span className="text-xs text-gray-400">{t("Non modifiable", "Cannot be changed")}</span>
         </Row>
-        <Row label="Nom" sub={`${firstName} ${lastName ?? ""}`}>
+        <Row label={t("Nom", "Name")} sub={`${firstName} ${lastName ?? ""}`}>
           <button onClick={() => router.push("/profil")} className="text-xs text-health-blue font-medium">
-            Modifier →
+            {t("Modifier →", "Edit →")}
           </button>
         </Row>
       </Section>
 
-      {/* Préférences */}
-      <Section title="Préférences">
-        <Row label="Langue">
+      <Section title={t("Préférences", "Preferences")}>
+        <Row label={t("Langue", "Language")}>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
             {LANGUAGES.map((l) => (
               <button
@@ -169,61 +186,58 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
             ))}
           </div>
         </Row>
-        <Row label="Thème">
+        <Row label={t("Thème", "Theme")}>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
-            {THEMES.map((t) => (
+            {THEMES.map((th) => (
               <button
-                key={t.value}
+                key={th.value}
                 type="button"
-                onClick={() => savePref("theme", t.value)}
+                onClick={() => savePref("theme", th.value)}
                 className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
-                  prefs.theme === t.value
+                  prefs.theme === th.value
                     ? "bg-white text-health-blue shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                {t.label}
+                {th.label}
               </button>
             ))}
           </div>
         </Row>
       </Section>
 
-      {/* Notifications */}
-      <Section title="Notifications">
-        <Row label="Rappels médicaments" sub="Notifications push quotidiennes">
+      <Section title={t("Notifications", "Notifications")}>
+        <Row label={t("Rappels médicaments", "Medication reminders")} sub={t("Notifications push quotidiennes", "Daily push notifications")}>
           <Toggle checked={prefs.notif_reminders} onChange={(v) => savePref("notif_reminders", v)} />
         </Row>
-        <Row label="Rendez-vous" sub="Rappels agenda santé">
+        <Row label={t("Rendez-vous", "Appointments")} sub={t("Rappels agenda santé", "Health calendar reminders")}>
           <Toggle checked={prefs.notif_agenda} onChange={(v) => savePref("notif_agenda", v)} />
         </Row>
-        <Row label="SMS & WhatsApp" sub="Via Twilio (nécessite config)">
+        <Row label="SMS & WhatsApp" sub={t("Via Twilio (nécessite config)", "Via Twilio (requires setup)")}>
           <Toggle checked={prefs.notif_rappels_sms} onChange={(v) => savePref("notif_rappels_sms", v)} />
         </Row>
       </Section>
 
-      {/* Confidentialité */}
-      <Section title="Confidentialité">
-        <Row label="Partage avec professionnels" sub="Autorise le partage de vos données avec votre médecin">
+      <Section title={t("Confidentialité", "Privacy")}>
+        <Row label={t("Partage avec professionnels", "Share with professionals")} sub={t("Autorise le partage de vos données avec votre médecin", "Allow sharing your data with your doctor")}>
           <Toggle checked={prefs.share_with_doctor} onChange={(v) => savePref("share_with_doctor", v)} />
         </Row>
-        <Row label="Export de mes données">
+        <Row label={t("Export de mes données", "Export my data")}>
           <button onClick={() => router.push("/export")} className="text-xs text-health-blue font-medium">
-            Exporter PDF →
+            {t("Exporter PDF →", "Export PDF →")}
           </button>
         </Row>
       </Section>
 
-      {/* Sécurité — changement mot de passe */}
-      <Section title="Sécurité">
+      <Section title={t("Sécurité", "Security")}>
         <div className="px-4 py-4 space-y-3">
-          <p className="text-sm font-medium text-gray-900">Changer le mot de passe</p>
+          <p className="text-sm font-medium text-gray-900">{t("Changer le mot de passe", "Change password")}</p>
           {pwError && <div className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{pwError}</div>}
-          {pwSuccess && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ Mot de passe mis à jour</div>}
+          {pwSuccess && <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {t("Mot de passe mis à jour", "Password updated")}</div>}
           <form onSubmit={changePassword} className="space-y-2">
             <input
               type="password"
-              placeholder="Nouveau mot de passe"
+              placeholder={t("Nouveau mot de passe", "New password")}
               value={pwForm.next}
               onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
               className="input-field text-sm"
@@ -232,7 +246,7 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
             />
             <input
               type="password"
-              placeholder="Confirmer le nouveau mot de passe"
+              placeholder={t("Confirmer le nouveau mot de passe", "Confirm new password")}
               value={pwForm.confirm}
               onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
               className="input-field text-sm"
@@ -240,29 +254,27 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
               required
             />
             <button type="submit" disabled={pwLoading} className="btn-primary text-sm py-2">
-              {pwLoading ? "Mise à jour…" : "Mettre à jour"}
+              {pwLoading ? t("Mise à jour…", "Updating…") : t("Mettre à jour", "Update")}
             </button>
           </form>
         </div>
       </Section>
 
-      {/* À propos */}
-      <Section title="À propos">
+      <Section title={t("À propos", "About")}>
         <Row label="Mon Carnet Santé" sub={`Version ${appVersion} — GBOL`}>
           <span className="text-xs text-gray-300">🩺</span>
         </Row>
-        <Row label="Développé par" sub="Sangboliéwa Lanzeny Ouattara">
+        <Row label={t("Développé par", "Developed by")} sub="Sangboliéwa Lanzeny Ouattara">
           <span className="text-xs text-gray-400">GBOL</span>
         </Row>
       </Section>
 
-      {/* Actions compte */}
       <div className="space-y-3 pt-2">
         <button
           onClick={handleLogout}
           className="w-full text-center py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm bg-white"
         >
-          Se déconnecter
+          {t("Se déconnecter", "Log out")}
         </button>
 
         {!deleteConfirm ? (
@@ -270,22 +282,22 @@ export default function ParametresClient({ userId, email, firstName, lastName, p
             onClick={() => setDeleteConfirm(true)}
             className="w-full text-center py-3 rounded-xl border border-red-200 text-red-500 font-medium text-sm"
           >
-            Supprimer mon compte
+            {t("Supprimer mon compte", "Delete my account")}
           </button>
         ) : (
           <div className="card border-red-200 bg-red-50 space-y-3">
-            <p className="text-sm text-red-800 font-medium">⚠️ Cette action est irréversible.</p>
-            <p className="text-xs text-red-600">Toutes vos données médicales seront définitivement effacées.</p>
+            <p className="text-sm text-red-800 font-medium">⚠️ {t("Cette action est irréversible.", "This action is irreversible.")}</p>
+            <p className="text-xs text-red-600">{t("Toutes vos données médicales seront définitivement effacées.", "All your medical data will be permanently deleted.")}</p>
             <div className="flex gap-2">
               <button onClick={() => setDeleteConfirm(false)} className="btn-secondary text-sm py-2 flex-1">
-                Annuler
+                {t("Annuler", "Cancel")}
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteLoading}
                 className="flex-1 py-2 rounded-xl bg-red-600 text-white font-semibold text-sm"
               >
-                {deleteLoading ? "Suppression…" : "Confirmer"}
+                {deleteLoading ? t("Suppression…", "Deleting…") : t("Confirmer", "Confirm")}
               </button>
             </div>
           </div>

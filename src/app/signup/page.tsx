@@ -8,6 +8,7 @@ function SignupForm() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
+  const [role, setRole] = useState<"patient" | "doctor">("patient");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +33,40 @@ function SignupForm() {
 
   return (
     <div className="card">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Créer un compte</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-5">Créer un compte</h2>
+
+      {/* Sélecteur de profil */}
+      <div className="mb-5">
+        <p className="label mb-2">Je suis… *</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setRole("patient")}
+            className={`flex flex-col items-center gap-1.5 py-4 px-3 rounded-xl border-2 transition-all ${
+              role === "patient"
+                ? "border-health-blue bg-blue-50 text-health-blue"
+                : "border-gray-200 bg-white text-gray-500"
+            }`}
+          >
+            <span className="text-2xl">🧑‍⚕️</span>
+            <span className="font-semibold text-sm">Patient</span>
+            <span className="text-[10px] leading-tight text-center opacity-70">Gérer ma santé et celle de ma famille</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole("doctor")}
+            className={`flex flex-col items-center gap-1.5 py-4 px-3 rounded-xl border-2 transition-all ${
+              role === "doctor"
+                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                : "border-gray-200 bg-white text-gray-500"
+            }`}
+          >
+            <span className="text-2xl">🩺</span>
+            <span className="font-semibold text-sm">Médecin</span>
+            <span className="text-[10px] leading-tight text-center opacity-70">Suivre mes patients et rédiger des ordonnances</span>
+          </button>
+        </div>
+      </div>
 
       {serverError && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-sm text-red-700">
@@ -49,6 +83,7 @@ function SignupForm() {
         className="space-y-4"
       >
         {/* Hidden inputs carry React state values when form.submit() is called */}
+        <input type="hidden" name="role" value={role} />
         <input type="hidden" name="firstName" value={firstName} />
         <input type="hidden" name="lastName" value={lastName} />
         <input type="hidden" name="email" value={email} />
@@ -109,7 +144,7 @@ function SignupForm() {
           />
         </div>
         <button type="submit" disabled={loading} className="btn-primary mt-2">
-          {loading ? "Création…" : "Créer mon carnet"}
+          {loading ? "Création…" : role === "doctor" ? "Créer mon espace médecin" : "Créer mon carnet"}
         </button>
       </form>
     </div>

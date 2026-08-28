@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { MedicationReminder, MedicationReminderInsert } from "@/lib/supabase/types";
 import { useI18n } from "@/lib/i18n/context";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import { saveToCache, loadFromCache, isOnline } from "@/lib/offline/cache";
 
 function todayStr() { return new Date().toISOString().split("T")[0]; }
@@ -17,14 +18,14 @@ function nowMinutes() {
   return n.getHours() * 60 + n.getMinutes();
 }
 
-function countdownLabel(tm: string): { label: string; status: "past" | "urgent" | "soon" | "later" } {
+function countdownLabel(tm: string, lang: "fr" | "en"): { label: string; status: "past" | "urgent" | "soon" | "later" } {
   const target = timeToMinutes(tm);
   const now = nowMinutes();
   const diff = target - now;
-  if (diff < -15) return { label: "Passé", status: "past" };
-  if (diff < 0) return { label: "Maintenant", status: "urgent" };
-  if (diff < 60) return { label: `Dans ${diff} min`, status: "urgent" };
-  if (diff < 120) return { label: `Dans ${Math.round(diff / 60)}h`, status: "soon" };
+  if (diff < -15) return { label: lang === "en" ? "Past" : "Passé", status: "past" };
+  if (diff < 0) return { label: lang === "en" ? "Now" : "Maintenant", status: "urgent" };
+  if (diff < 60) return { label: lang === "en" ? `In ${diff} min` : `Dans ${diff} min`, status: "urgent" };
+  if (diff < 120) return { label: lang === "en" ? `In ${Math.round(diff / 60)}h` : `Dans ${Math.round(diff / 60)}h`, status: "soon" };
   return { label: tm, status: "later" };
 }
 
@@ -32,6 +33,8 @@ interface Props { personId: string; initialData: MedicationReminder[] }
 
 export default function RappelsClient({ personId, initialData }: Props) {
   const { t } = useI18n();
+  const { lang } = useLang();
+  const tl = (fr: string, en: string) => lang === "en" ? en : fr;
   const [items, setItems] = useState<MedicationReminder[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [medName, setMedName] = useState("");
@@ -148,9 +151,9 @@ export default function RappelsClient({ personId, initialData }: Props) {
         <div className="space-y-3">
           {/* Progress header */}
           <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-gray-900">Programme du jour</p>
+            <p className="text-sm font-bold text-gray-900">{tl("Programme du jour", "Today's schedule")}</p>
             <span className={`text-xs font-semibold px-3 py-1 rounded-full ${takenCount === totalToday ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-              {takenCount}/{totalToday} pris
+              {takenCount}/{totalToday} {tl("pris", "taken")}
             </span>
           </div>
           <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
@@ -159,14 +162,14 @@ export default function RappelsClient({ personId, initialData }: Props) {
           </div>
           {takenCount === totalToday && totalToday > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2 text-sm text-green-700 font-medium text-center">
-              🎉 Tous les médicaments du jour sont pris !
+              {tl("🎉 Tous les médicaments du jour sont pris !", "🎉 All today's medications taken!")}
             </div>
           )}
 
           {/* Timeline */}
           <div className="space-y-2">
             {todayDoses.map(({ item, tm, key }) => {
-              const { label, status } = countdownLabel(tm);
+              const { label, status } = countdownLabel(tm, lang);
               const isTaken = taken.has(key);
               return (
                 <div key={key} className={"rounded-2xl border-2 p-4 flex items-center gap-3 transition-all " + (
@@ -178,7 +181,7 @@ export default function RappelsClient({ personId, initialData }: Props) {
                   {/* Time */}
                   <div className="w-14 text-center shrink-0">
                     <p className={"text-base font-bold " + (isTaken ? "text-green-600" : status === "urgent" ? "text-orange-600" : "text-gray-800")}>{tm}</p>
-                    <p className={"text-[10px] font-medium " + (isTaken ? "text-green-500" : status === "urgent" ? "text-orange-500" : "text-gray-400")}>{isTaken ? "✓ pris" : label}</p>
+                    <p className={"text-[10px] font-medium " + (isTaken ? "text-green-500" : status === "urgent" ? "text-orange-500" : "text-gray-400")}>{isTaken ? tl("✓ pris", "✓ taken") : label}</p>
                   </div>
                   {/* Separator */}
                   <div className={"w-px h-10 " + (isTaken ? "bg-green-200" : status === "urgent" ? "bg-orange-300" : "bg-gray-200")} />
@@ -195,7 +198,7 @@ export default function RappelsClient({ personId, initialData }: Props) {
                       status === "urgent" ? "border-orange-400 text-orange-400 active:bg-orange-50" :
                       "border-gray-300 text-gray-300 active:bg-gray-50"
                     )}
-                    title={isTaken ? "Marquer comme non pris" : "Marquer comme pris"}
+                    title={isTaken ? tl("Marquer comme non pris", "Mark as not taken") : tl("Marquer comme pris", "Mark as taken")}
                   >
                     {isTaken ? "✓" : "○"}
                   </button>
@@ -240,12 +243,12 @@ export default function RappelsClient({ personId, initialData }: Props) {
       {items.length === 0 && !showForm && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">⏰</div>
-          <p className="font-semibold text-gray-800">Ne rate plus jamais un médicament</p>
+          <p className="font-semibold text-gray-800">{tl("Ne rate plus jamais un médicament", "Never miss a medication again")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
-            Configure des rappels quotidiens pour chaque traitement. Tu recevras une notification à l&apos;heure exacte.
+            {tl("Configure des rappels quotidiens pour chaque traitement. Tu recevras une notification à l'heure exacte.", "Set up daily reminders for each treatment. You'll get a notification at the exact time.")}
           </p>
           <button onClick={() => setShowForm(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Configurer mes rappels
+            {tl("+ Configurer mes rappels", "+ Set up reminders")}
           </button>
         </div>
       )}

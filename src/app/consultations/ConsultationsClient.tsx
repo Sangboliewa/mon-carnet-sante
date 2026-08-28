@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { MedicalConsultation, MedicalConsultationInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 const SPECIALTY_COLORS: Record<string, string> = {
   "Médecine générale": "bg-blue-100 text-blue-700",
@@ -67,6 +68,8 @@ function formatDate(d: string) {
 interface Props { personId: string; initialData: MedicalConsultation[] }
 
 export default function ConsultationsClient({ personId, initialData }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [items, setItems] = useState<MedicalConsultation[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK);
@@ -154,7 +157,7 @@ export default function ConsultationsClient({ personId, initialData }: Props) {
       )}
 
       <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
-        {showForm ? "Annuler" : "+ Ajouter une consultation"}
+        {showForm ? t("Annuler", "Cancel") : t("+ Ajouter une consultation", "+ Add consultation")}
       </button>
 
       {showForm && (
@@ -204,7 +207,7 @@ export default function ConsultationsClient({ personId, initialData }: Props) {
             <textarea name="notes" className="input-field resize-none" rows={2} value={form.notes ?? ""} onChange={handleChange} />
           </div>
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
           </button>
         </form>
       )}
@@ -217,13 +220,13 @@ export default function ConsultationsClient({ personId, initialData }: Props) {
             Enregistre tes consultations pour avoir un historique complet et ne plus jamais perdre une information médicale.
           </p>
           <button onClick={() => setShowForm(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Ajouter ma 1ère consultation
+            {t("+ Ajouter ma 1ère consultation", "+ Add my 1st consultation")}
           </button>
         </div>
       )}
 
       {search && filtered.length === 0 && (
-        <p className="text-sm text-gray-400 text-center py-6">Aucun résultat pour « {search} »</p>
+        <p className="text-sm text-gray-400 text-center py-6">{t(`Aucun résultat pour « ${search} »`, `No results for "${search}"`)}</p>
       )}
 
       {filtered.map((item) => (
@@ -271,7 +274,7 @@ export default function ConsultationsClient({ personId, initialData }: Props) {
               {item.location && <p className="text-xs text-gray-400">{item.location}</p>}
               {item.notes && <p className="text-xs text-gray-500 italic">{item.notes}</p>}
               <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-red-500 text-xs mt-1">
-                {deletingId === item.id ? "Suppression…" : "Supprimer"}
+                {deletingId === item.id ? t("Suppression…", "Deleting…") : t("Supprimer", "Delete")}
               </button>
             </div>
           )}

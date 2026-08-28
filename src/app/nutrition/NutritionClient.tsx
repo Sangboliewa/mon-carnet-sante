@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState, useCallback } from "react";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 type MealTypeKey = "petit_dejeuner" | "dejeuner" | "diner" | "collation";
 
@@ -65,6 +66,8 @@ function toDateString(d: Date) { return d.toISOString().split("T")[0]; }
 
 export default function NutritionClient({ personId }: { personId: string }) {
   const supabase = createClient();
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const today = toDateString(new Date());
 
   const [selectedDate, setSelectedDate] = useState(today);
@@ -167,7 +170,7 @@ export default function NutritionClient({ personId }: { personId: string }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer ce repas ?")) return;
+    if (!confirm(t("Supprimer ce repas ?", "Delete this meal?"))) return;
     const { error: err } = await supabase.from("nutrition_logs").delete().eq("id", id);
     if (err) setError(err.message);
     else { fetchDayData(); fetchWeekData(); }
@@ -293,7 +296,7 @@ export default function NutritionClient({ personId }: { personId: string }) {
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-sm flex items-center gap-2"><span>🍽️</span> Repas du jour</h2>
           {!showAddMeal && (
-            <button className="btn-primary w-auto px-4 py-2 text-sm" onClick={() => setShowAddMeal(true)}>+ Ajouter</button>
+            <button className="btn-primary w-auto px-4 py-2 text-sm" onClick={() => setShowAddMeal(true)}>{t("+ Ajouter", "+ Add")}</button>
           )}
         </div>
 
@@ -341,18 +344,18 @@ export default function NutritionClient({ personId }: { personId: string }) {
               ))}
             </div>
             <div className="flex gap-2 justify-end">
-              <button type="button" className="btn-secondary text-sm py-2" onClick={resetForm}>Annuler</button>
-              <button type="submit" className="btn-primary text-sm py-2">{editingMeal ? "Modifier" : "Ajouter"}</button>
+              <button type="button" className="btn-secondary text-sm py-2" onClick={resetForm}>{t("Annuler", "Cancel")}</button>
+              <button type="submit" className="btn-primary text-sm py-2">{editingMeal ? t("Modifier", "Update") : t("Ajouter", "Add")}</button>
             </div>
           </form>
         )}
 
         {loading ? (
-          <p className="text-sm text-gray-400 text-center py-4">Chargement…</p>
+          <p className="text-sm text-gray-400 text-center py-4">{t("Chargement…", "Loading…")}</p>
         ) : meals.length === 0 && !showAddMeal ? (
           <div className="text-center py-10 space-y-3">
             <div className="text-5xl">🍽️</div>
-            <p className="font-semibold text-gray-800">Aucun repas enregistré</p>
+            <p className="font-semibold text-gray-800">{t("Aucun repas enregistré", "No meals recorded")}</p>
             <p className="text-sm text-gray-500 leading-relaxed px-4">
               Note ce que tu manges pour suivre tes apports et atteindre tes objectifs nutritionnels.
             </p>

@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export const maxDuration = 10;
 
-const SYSTEM_PROMPT = `Tu es ABIBA, l'assistante santé de Mon Carnet Santé — le Passeport Santé Numérique des Familles Africaines.
+const SYSTEM_PROMPT = `Tu es By', l'assistante santé de Mon Carnet Santé — le Passeport Santé Numérique des Familles Africaines.
 
 Tu aides les utilisateurs à :
 - Comprendre leurs résultats d'examens médicaux

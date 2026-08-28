@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface HtaRecord {
   id: string;
@@ -24,16 +25,27 @@ function bpStatus(sys: number, dia: number): "optimal" | "normal" | "elevated" |
   return "optimal";
 }
 
-const STATUS_INFO = {
-  optimal:  { label: "Optimal",          color: "text-green-700",  bg: "bg-green-50 border-green-200" },
-  normal:   { label: "Normal",           color: "text-blue-700",   bg: "bg-blue-50 border-blue-200" },
-  elevated: { label: "Élevé",            color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" },
-  high1:    { label: "HTA Grade 1",      color: "text-amber-700",  bg: "bg-amber-50 border-amber-200" },
-  high2:    { label: "HTA Grade 2",      color: "text-orange-700", bg: "bg-orange-50 border-orange-200" },
-  crisis:   { label: "Crise hypertensive", color: "text-red-700", bg: "bg-red-50 border-red-200" },
+const STATUS_INFO_FR = {
+  optimal:  { label: "Optimal",            color: "text-green-700",  bg: "bg-green-50 border-green-200" },
+  normal:   { label: "Normal",             color: "text-blue-700",   bg: "bg-blue-50 border-blue-200" },
+  elevated: { label: "Élevé",              color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" },
+  high1:    { label: "HTA Grade 1",        color: "text-amber-700",  bg: "bg-amber-50 border-amber-200" },
+  high2:    { label: "HTA Grade 2",        color: "text-orange-700", bg: "bg-orange-50 border-orange-200" },
+  crisis:   { label: "Crise hypertensive", color: "text-red-700",    bg: "bg-red-50 border-red-200" },
+};
+const STATUS_INFO_EN = {
+  optimal:  { label: "Optimal",           color: "text-green-700",  bg: "bg-green-50 border-green-200" },
+  normal:   { label: "Normal",            color: "text-blue-700",   bg: "bg-blue-50 border-blue-200" },
+  elevated: { label: "Elevated",          color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" },
+  high1:    { label: "HTN Grade 1",       color: "text-amber-700",  bg: "bg-amber-50 border-amber-200" },
+  high2:    { label: "HTN Grade 2",       color: "text-orange-700", bg: "bg-orange-50 border-orange-200" },
+  crisis:   { label: "Hypertensive crisis", color: "text-red-700", bg: "bg-red-50 border-red-200" },
 };
 
 export default function HtaClient({ personId, initial }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
+  const STATUS_INFO = lang === "en" ? STATUS_INFO_EN : STATUS_INFO_FR;
   const [records, setRecords] = useState(initial);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -83,15 +95,15 @@ export default function HtaClient({ personId, initial }: Props) {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className="text-xl font-bold text-red-600">{records.length}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Mesures</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t("Mesures", "Readings")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className="text-xl font-bold text-gray-800">{avgSys ? `${avgSys}/${avgDia}` : "–"}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Moyenne</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t("Moyenne", "Average")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className={`text-xl font-bold ${crises > 0 ? "text-red-600" : "text-green-600"}`}>{crises}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Crises</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t("Crises", "Crises")}</p>
         </div>
       </div>
 
@@ -99,7 +111,7 @@ export default function HtaClient({ personId, initial }: Props) {
         const s = STATUS_INFO[bpStatus(latest.systolic, latest.diastolic)];
         return (
           <div className={`rounded-2xl border p-3 ${s.bg}`}>
-            <p className="text-xs text-gray-500">Dernière mesure</p>
+            <p className="text-xs text-gray-500">{t("Dernière mesure", "Latest reading")}</p>
             <p className={`text-2xl font-bold ${s.color}`}>{latest.systolic}/{latest.diastolic} <span className="text-sm font-normal">mmHg</span></p>
             <p className={`text-sm font-semibold ${s.color}`}>{s.label}</p>
           </div>
@@ -108,42 +120,42 @@ export default function HtaClient({ personId, initial }: Props) {
 
       <button onClick={() => setShowForm(!showForm)}
         className="w-full py-3 rounded-2xl bg-red-500 text-white font-semibold text-sm active:opacity-80">
-        + Nouvelle mesure
+        + {t("Nouvelle mesure", "New reading")}
       </button>
 
       {showForm && (
         <div className="bg-white rounded-2xl border p-4 space-y-3">
-          <p className="font-semibold text-gray-900">Nouvelle mesure</p>
+          <p className="font-semibold text-gray-900">{t("Nouvelle mesure", "New reading")}</p>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Date & heure</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Date & heure", "Date & time")}</label>
             <input type="datetime-local" value={form.recorded_at}
               onChange={e => setForm({ ...form, recorded_at: e.target.value })} className="input mt-1" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Systolique (mmHg) *</label>
-              <input type="number" placeholder="ex: 120" value={form.systolic}
+              <label className="text-xs text-gray-500 font-medium">{t("Systolique (mmHg) *", "Systolic (mmHg) *")}</label>
+              <input type="number" placeholder={t("ex: 120", "e.g. 120")} value={form.systolic}
                 onChange={e => setForm({ ...form, systolic: e.target.value })} className="input mt-1" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Diastolique (mmHg) *</label>
-              <input type="number" placeholder="ex: 80" value={form.diastolic}
+              <label className="text-xs text-gray-500 font-medium">{t("Diastolique (mmHg) *", "Diastolic (mmHg) *")}</label>
+              <input type="number" placeholder={t("ex: 80", "e.g. 80")} value={form.diastolic}
                 onChange={e => setForm({ ...form, diastolic: e.target.value })} className="input mt-1" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Pouls (bpm)</label>
-            <input type="number" placeholder="ex: 72" value={form.heart_rate}
+            <label className="text-xs text-gray-500 font-medium">{t("Pouls (bpm)", "Pulse (bpm)")}</label>
+            <input type="number" placeholder={t("ex: 72", "e.g. 72")} value={form.heart_rate}
               onChange={e => setForm({ ...form, heart_rate: e.target.value })} className="input mt-1" />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Bras</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Bras", "Arm")}</label>
             <div className="flex gap-2 mt-1">
-              {([["left","💪 Gauche"],["right","💪 Droit"],["both","Les deux"]] as const).map(([v,l]) => (
+              {([["left", t("💪 Gauche", "💪 Left")],["right", t("💪 Droit", "💪 Right")],["both", t("Les deux", "Both")]] as const).map(([v,l]) => (
                 <button key={v} type="button"
                   onClick={() => setForm({ ...form, arm: v })}
                   className={`flex-1 py-2 rounded-xl border-2 text-xs font-medium transition-all ${form.arm === v ? "border-red-400 bg-red-50 text-red-800" : "border-gray-100 text-gray-600"}`}>
@@ -153,9 +165,9 @@ export default function HtaClient({ personId, initial }: Props) {
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-500 font-medium">Position</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Position", "Position")}</label>
             <div className="flex gap-2 mt-1">
-              {([["sitting","🪑 Assis"],["standing","🧍 Debout"],["lying","🛏 Allongé"]] as const).map(([v,l]) => (
+              {([["sitting", t("🪑 Assis", "🪑 Sitting")],["standing", t("🧍 Debout", "🧍 Standing")],["lying", t("🛏 Allongé", "🛏 Lying")]] as const).map(([v,l]) => (
                 <button key={v} type="button"
                   onClick={() => setForm({ ...form, position: v })}
                   className={`flex-1 py-2 rounded-xl border-2 text-xs font-medium transition-all ${form.position === v ? "border-red-400 bg-red-50 text-red-800" : "border-gray-100 text-gray-600"}`}>
@@ -166,16 +178,16 @@ export default function HtaClient({ personId, initial }: Props) {
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Notes</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Notes", "Notes")}</label>
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-              placeholder="Symptômes, médicaments pris..." rows={2} className="input mt-1 resize-none" />
+              placeholder={t("Symptômes, médicaments pris...", "Symptoms, medications taken...")} rows={2} className="input mt-1 resize-none" />
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">Annuler</button>
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">{t("Annuler", "Cancel")}</button>
             <button onClick={save} disabled={saving || !form.systolic || !form.diastolic}
               className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">
-              {saving ? "Enregistrement…" : "Enregistrer"}
+              {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
             </button>
           </div>
         </div>
@@ -183,7 +195,7 @@ export default function HtaClient({ personId, initial }: Props) {
 
       {/* Guide OMS */}
       <div className="bg-gray-50 rounded-2xl border p-4 space-y-1.5">
-        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Guide OMS — Tension artérielle</p>
+        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">{t("Guide OMS — Tension artérielle", "WHO Guide — Blood Pressure")}</p>
         {Object.entries(STATUS_INFO).map(([k, v]) => (
           <div key={k} className={`flex justify-between items-center rounded-lg px-3 py-1.5 border ${v.bg}`}>
             <span className={`text-xs font-medium ${v.color}`}>{v.label}</span>
@@ -199,13 +211,13 @@ export default function HtaClient({ personId, initial }: Props) {
         {records.length === 0 && (
           <div className="card text-center py-10 space-y-3">
             <div className="text-5xl">🩺</div>
-            <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+            <p className="font-semibold text-gray-800">{t("Aucune mesure enregistrée", "No readings recorded")}</p>
             <p className="text-sm text-gray-500 leading-relaxed px-4">
-              Suis ta tension artérielle régulièrement pour détecter et contrôler l&apos;hypertension.
+              {t("Suis ta tension artérielle régulièrement pour détecter et contrôler l'hypertension.", "Track your blood pressure regularly to detect and control hypertension.")}
             </p>
             <button onClick={() => setShowForm(true)}
               className="inline-block bg-red-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-              + Nouvelle mesure
+              + {t("Nouvelle mesure", "New reading")}
             </button>
           </div>
         )}
@@ -232,11 +244,11 @@ export default function HtaClient({ personId, initial }: Props) {
                 </div>
                 {r.arm && (
                   <p className="text-xs text-gray-400 mt-0.5">
-                    Bras {r.arm === "left" ? "gauche" : r.arm === "right" ? "droit" : "les deux"} · {r.position === "sitting" ? "Assis" : r.position === "standing" ? "Debout" : "Allongé"}
+                    {t("Bras", "Arm")} {r.arm === "left" ? t("gauche", "left") : r.arm === "right" ? t("droit", "right") : t("les deux", "both")} · {r.position === "sitting" ? t("Assis", "Sitting") : r.position === "standing" ? t("Debout", "Standing") : t("Allongé", "Lying")}
                   </p>
                 )}
                 {r.notes && <p className="text-xs text-gray-500 italic mt-0.5">{r.notes}</p>}
-                <button onClick={() => remove(r.id)} className="text-red-400 text-xs mt-1.5">Supprimer</button>
+                <button onClick={() => remove(r.id)} className="text-red-400 text-xs mt-1.5">{t("Supprimer", "Delete")}</button>
               </div>
             </div>
           );

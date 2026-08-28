@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Vaccination, VaccinationInsert } from "@/lib/supabase/types";
 import { useI18n } from "@/lib/i18n/context";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import { saveToCache, loadFromCache, isOnline } from "@/lib/offline/cache";
 
 const BLANK: Omit<VaccinationInsert, "person_id"> = {
@@ -26,6 +27,9 @@ interface Props { personId: string; initialData: Vaccination[] }
 
 export default function VaccinsClient({ personId, initialData }: Props) {
   const { t } = useI18n();
+  const { lang } = useLang();
+  const tl = (fr: string, en: string) => lang === "en" ? en : fr;
+
   const [items, setItems] = useState<Vaccination[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK);
@@ -105,7 +109,7 @@ export default function VaccinsClient({ personId, initialData }: Props) {
         <form onSubmit={handleAdd} className="card space-y-3">
           <div>
             <label className="label">{t.vaccins.vaccineName} *</label>
-            <input name="vaccine_name" required className="input-field" value={form.vaccine_name} onChange={handleChange} placeholder="ex : Hépatite B" />
+            <input name="vaccine_name" required className="input-field" value={form.vaccine_name} onChange={handleChange} placeholder={tl("ex : Hépatite B", "e.g. Hepatitis B")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="label">{t.vaccins.vaccineCode}</label><input name="vaccine_code" className="input-field" value={form.vaccine_code ?? ""} onChange={handleChange} /></div>
@@ -123,12 +127,15 @@ export default function VaccinsClient({ personId, initialData }: Props) {
       {items.length === 0 && !showForm && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">💉</div>
-          <p className="font-semibold text-gray-800">Carnet vaccinal vide</p>
+          <p className="font-semibold text-gray-800">{tl("Carnet vaccinal vide", "Vaccination record empty")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
-            Renseigne tes vaccinations pour recevoir des rappels avant chaque date de rappel. Essentiel pour toi et ta famille.
+            {tl(
+              "Renseigne tes vaccinations pour recevoir des rappels avant chaque date de rappel. Essentiel pour toi et ta famille.",
+              "Record your vaccinations to receive reminders before each booster date. Essential for you and your family."
+            )}
           </p>
           <button onClick={() => setShowForm(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Ajouter un vaccin
+            {tl("+ Ajouter un vaccin", "+ Add a vaccine")}
           </button>
         </div>
       )}
@@ -165,10 +172,10 @@ export default function VaccinsClient({ personId, initialData }: Props) {
                 )}
                 {item.next_dose_date && (
                   <p className={`text-xs font-medium ${isOverdue ? "text-red-600" : isUrgent ? "text-orange-600" : "text-gray-500"}`}>
-                    📅 Prochain rappel : {item.next_dose_date}
+                    📅 {tl("Prochain rappel :", "Next booster:")} {item.next_dose_date}
                   </p>
                 )}
-                {item.batch_number && <p className="text-xs text-gray-400">Lot : {item.batch_number}</p>}
+                {item.batch_number && <p className="text-xs text-gray-400">{tl("Lot :", "Batch:")} {item.batch_number}</p>}
                 {item.notes && <p className="text-xs text-gray-400 italic">{item.notes}</p>}
               </div>
               <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-red-400 text-xs mt-2">

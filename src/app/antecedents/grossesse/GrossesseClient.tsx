@@ -5,6 +5,7 @@ import type {
   Pregnancy, PregnancyInsert,
   PrenatalAppointment, PrenatalAppointmentInsert,
 } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -87,6 +88,8 @@ interface Props {
 }
 
 export default function GrossesseClient({ personId, initialPregnancy, initialAppointments }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [pregnancy, setPregnancy] = useState<Pregnancy | null>(initialPregnancy);
   const [appointments, setAppointments] = useState<PrenatalAppointment[]>(initialAppointments);
 
@@ -285,7 +288,7 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
       {showPregForm && (
         <form onSubmit={handleSavePregnancy} className="card space-y-3">
           <p className="font-semibold text-gray-700 text-sm uppercase tracking-wide">
-            {pregnancy ? "Modifier la grossesse" : "Démarrer le suivi"}
+            {pregnancy ? t("Modifier la grossesse", "Edit pregnancy") : t("Démarrer le suivi", "Start tracking")}
           </p>
           <div>
             <label className="label">Date des dernières règles (DDR)</label>
@@ -317,11 +320,11 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
           </div>
           <div className="flex gap-2">
             <button type="submit" disabled={savingPreg} className="btn-primary flex-1">
-              {savingPreg ? "Enregistrement…" : "Enregistrer"}
+              {savingPreg ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
             </button>
             {pregnancy && (
               <button type="button" onClick={() => setShowPregForm(false)} className="flex-1 rounded-xl border border-gray-300 py-2 text-sm text-gray-600">
-                Annuler
+                {t("Annuler", "Cancel")}
               </button>
             )}
           </div>
@@ -333,7 +336,7 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
         <div className="flex justify-between items-center">
           <p className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Consultations prénatales</p>
           <button onClick={() => setShowApptForm((v) => !v)} className="text-sm text-health-blue font-medium">
-            {showApptForm ? "Annuler" : "+ Ajouter"}
+            {showApptForm ? t("Annuler", "Cancel") : t("+ Ajouter", "+ Add")}
           </button>
         </div>
 
@@ -369,7 +372,7 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
               <textarea name="notes" className="input-field resize-none" rows={2} value={apptForm.notes ?? ""} onChange={handleApptChange} />
             </div>
             <button type="submit" disabled={savingAppt} className="btn-primary">
-              {savingAppt ? "Enregistrement…" : "Enregistrer"}
+              {savingAppt ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
             </button>
           </form>
         )}
@@ -377,7 +380,7 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
         {appointments.length === 0 && !showApptForm && (
           <div className="card text-center py-10 space-y-3">
             <div className="text-5xl">👶</div>
-            <p className="font-semibold text-gray-800">Aucune consultation prénatale</p>
+            <p className="font-semibold text-gray-800">{t("Aucune consultation prénatale", "No prenatal appointments")}</p>
             <p className="text-sm text-gray-500 leading-relaxed px-4">
               Planifie tes 9 consultations obligatoires et reçois des rappels avant chaque rendez-vous.
             </p>
@@ -420,7 +423,7 @@ export default function GrossesseClient({ personId, initialPregnancy, initialApp
                     disabled={deletingApptId === appt.id}
                     className="text-red-500 text-xs"
                   >
-                    {deletingApptId === appt.id ? "Suppression…" : "Supprimer"}
+                    {deletingApptId === appt.id ? t("Suppression…", "Deleting…") : t("Supprimer", "Delete")}
                   </button>
                 </div>
               </div>

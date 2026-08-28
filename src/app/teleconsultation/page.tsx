@@ -5,7 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import TeleconsultationClient from "./TeleconsultationClient";
 
 export const metadata: Metadata = {
-  title: "TÃ©lÃ©consultation | Mon Carnet SantÃ©",
+  title: "Téléconsultation | Mon Carnet Santé",
 };
 
 export default async function TeleconsultationPage() {
@@ -15,7 +15,7 @@ export default async function TeleconsultationPage() {
 
   return (
     <div>
-      <PageHeader title="TÃ©lÃ©consultations" subtitle="Consultations mÃ©dicales en ligne" back />
+      <PageHeader title="Téléconsultations" subtitle="Consultations médicales en ligne" back />
       <TeleconsultationClient />
     </div>
   );

@@ -2,27 +2,28 @@
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { VitalMeasurement, VitalMeasurementInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
 type MeasurementType = VitalMeasurementInsert["measurement_type"];
 
-const TYPES: { value: MeasurementType; label: string; icon: string; unit: string; secondary?: string; normalMin?: number; normalMax?: number; hint?: string }[] = [
-  { value: "blood_pressure",      label: "Tension artérielle",  icon: "🩺", unit: "mmHg",  secondary: "Diastolique",     normalMin: 60, normalMax: 80,  hint: "ex : 120 / 80" },
-  { value: "blood_glucose",       label: "Glycémie",            icon: "🩸", unit: "g/L",   normalMin: 0.7, normalMax: 1.1, hint: "ex : 0.9" },
-  { value: "heart_rate",          label: "Fréquence cardiaque", icon: "❤️", unit: "bpm",   normalMin: 60, normalMax: 100 },
-  { value: "weight",              label: "Poids",               icon: "⚖️", unit: "kg" },
-  { value: "temperature",         label: "Température",         icon: "🌡️", unit: "°C",   normalMin: 36.1, normalMax: 37.2 },
-  { value: "oxygen_saturation",   label: "Saturation O₂",       icon: "💨", unit: "%",    normalMin: 95, normalMax: 100 },
+const TYPES: { value: MeasurementType; label: string; labelEn: string; icon: string; unit: string; secondary?: string; secondaryEn?: string; normalMin?: number; normalMax?: number; hint?: string; hintEn?: string }[] = [
+  { value: "blood_pressure",      label: "Tension artérielle",  labelEn: "Blood pressure",    icon: "🩺", unit: "mmHg",  secondary: "Diastolique",     secondaryEn: "Diastolic",    normalMin: 60, normalMax: 80,  hint: "ex : 120 / 80",  hintEn: "e.g. 120 / 80" },
+  { value: "blood_glucose",       label: "Glycémie",            labelEn: "Blood glucose",     icon: "🩸", unit: "g/L",   normalMin: 0.7, normalMax: 1.1, hint: "ex : 0.9",           hintEn: "e.g. 0.9" },
+  { value: "heart_rate",          label: "Fréquence cardiaque", labelEn: "Heart rate",        icon: "❤️", unit: "bpm",   normalMin: 60, normalMax: 100 },
+  { value: "weight",              label: "Poids",               labelEn: "Weight",            icon: "⚖️", unit: "kg" },
+  { value: "temperature",         label: "Température",         labelEn: "Temperature",       icon: "🌡️", unit: "°C",   normalMin: 36.1, normalMax: 37.2 },
+  { value: "oxygen_saturation",   label: "Saturation O₂",       labelEn: "O₂ saturation",     icon: "💨", unit: "%",    normalMin: 95, normalMax: 100 },
 ];
 
-const CONTEXTS = [
-  { value: "fasting",        label: "À jeun" },
-  { value: "after_meal",     label: "Après repas" },
-  { value: "before_meal",    label: "Avant repas" },
-  { value: "at_rest",        label: "Au repos" },
-  { value: "after_exercise", label: "Après effort" },
-  { value: "other",          label: "Autre" },
+const CONTEXTS: { value: string; label: string; labelEn: string }[] = [
+  { value: "fasting",        label: "À jeun",       labelEn: "Fasting" },
+  { value: "after_meal",     label: "Après repas",  labelEn: "After meal" },
+  { value: "before_meal",    label: "Avant repas",  labelEn: "Before meal" },
+  { value: "at_rest",        label: "Au repos",     labelEn: "At rest" },
+  { value: "after_exercise", label: "Après effort", labelEn: "After exercise" },
+  { value: "other",          label: "Autre",        labelEn: "Other" },
 ];
 
 // ─── Sparkline SVG ───────────────────────────────────────────────────────────
@@ -62,7 +63,7 @@ function formatVal(m: VitalMeasurement): string {
 }
 
 function normalStatus(m: VitalMeasurement): "normal" | "alert" | "unknown" {
-  const cfg = TYPES.find((t) => t.value === m.measurement_type);
+  const cfg = TYPES.find((tp) => tp.value === m.measurement_type);
   if (!cfg?.normalMin || !cfg?.normalMax) return "unknown";
   const v = m.measurement_type === "blood_pressure" ? m.value_secondary ?? m.value_primary : m.value_primary;
   return v >= cfg.normalMin && v <= cfg.normalMax ? "normal" : "alert";
@@ -76,18 +77,88 @@ function localNow(): string {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-function ImcBlock({ weights, heightCm }: { weights: VitalMeasurement[]; heightCm: number | null }) {
+function WeightChart({ weights, heightCm, lang }: { weights: VitalMeasurement[]; heightCm: number | null; lang: string }) {
+  const tl = (fr: string, en: string) => lang === "en" ? en : fr;
+  if (weights.length < 2) return null;
+  const sorted = [...weights].sort((a, b) => a.measured_at.localeCompare(b.measured_at));
+  const W = 320, H = 120, PAD = { t: 10, r: 12, b: 32, l: 36 };
+  const vals = sorted.map(m => m.value_primary);
+  const minV = Math.min(...vals) - 1, maxV = Math.max(...vals) + 1;
+  const sx = (i: number) => PAD.l + (i / (sorted.length - 1)) * (W - PAD.l - PAD.r);
+  const sy = (v: number) => PAD.t + (1 - (v - minV) / (maxV - minV)) * (H - PAD.t - PAD.b);
+  const pts = sorted.map((m, i) => `${sx(i)},${sy(m.value_primary)}`).join(" ");
+  const area = `M${sx(0)},${sy(sorted[0].value_primary)} ` + sorted.slice(1).map((m,i) => `L${sx(i+1)},${sy(m.value_primary)}`).join(" ") + ` L${sx(sorted.length-1)},${H-PAD.b} L${sx(0)},${H-PAD.b} Z`;
+  const imcOf = (w: number) => heightCm ? (w / ((heightCm/100)**2)).toFixed(1) : null;
+  const latest = sorted[sorted.length - 1];
+  const oldest = sorted[0];
+  const diff = latest.value_primary - oldest.value_primary;
+
+  return (
+    <div className="card space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-gray-800">📈 {tl("Évolution du poids", "Weight trend")}</p>
+        <div className="flex items-center gap-1">
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff < 0 ? "bg-green-100 text-green-700" : diff > 0 ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-600"}`}>
+            {diff > 0 ? "+" : ""}{diff.toFixed(1)} kg
+          </span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full overflow-visible">
+        {[minV, (minV+maxV)/2, maxV].map((v,i) => (
+          <g key={i}>
+            <line x1={PAD.l} y1={sy(v)} x2={W-PAD.r} y2={sy(v)} stroke="#e5e7eb" strokeWidth={1} />
+            <text x={PAD.l-4} y={sy(v)+4} textAnchor="end" fontSize={9} fill="#9ca3af">{v.toFixed(0)}</text>
+          </g>
+        ))}
+        <path d={area} fill="#1E6FBF" fillOpacity={0.08} />
+        <polyline points={pts} fill="none" stroke="#1E6FBF" strokeWidth={2} strokeLinejoin="round" />
+        {sorted.map((m, i) => (
+          <circle key={i} cx={sx(i)} cy={sy(m.value_primary)} r={3} fill="#1E6FBF" />
+        ))}
+        {[0, sorted.length-1].map(i => (
+          <text key={i} x={sx(i)} y={H-PAD.b+14} textAnchor="middle" fontSize={9} fill="#6b7280">
+            {new Date(sorted[i].measured_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})}
+          </text>
+        ))}
+      </svg>
+      <div className="flex gap-3 text-center">
+        <div className="flex-1 bg-gray-50 rounded-xl py-2">
+          <p className="text-xs text-gray-400">{tl("Dernier", "Latest")}</p>
+          <p className="font-bold text-gray-900">{latest.value_primary} kg</p>
+          {imcOf(latest.value_primary) && <p className="text-xs text-blue-600">IMC {imcOf(latest.value_primary)}</p>}
+        </div>
+        <div className="flex-1 bg-gray-50 rounded-xl py-2">
+          <p className="text-xs text-gray-400">{tl("Mesures", "Readings")}</p>
+          <p className="font-bold text-gray-900">{sorted.length}</p>
+        </div>
+        <div className="flex-1 bg-gray-50 rounded-xl py-2">
+          <p className="text-xs text-gray-400">Min / Max</p>
+          <p className="font-bold text-gray-900 text-xs">{Math.min(...vals).toFixed(0)} / {Math.max(...vals).toFixed(0)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ImcBlock({ weights, heightCm, lang }: { weights: VitalMeasurement[]; heightCm: number | null; lang: string }) {
+  const tl = (fr: string, en: string) => lang === "en" ? en : fr;
   if (!heightCm || !weights.length) return null;
   const latest = weights[0];
   const imc = latest.value_primary / ((heightCm / 100) ** 2);
-  const label = imc < 18.5 ? "Insuffisance pondérale" : imc < 25 ? "Poids normal" : imc < 30 ? "Surpoids" : "Obésité";
+  const label = imc < 18.5
+    ? tl("Insuffisance pondérale", "Underweight")
+    : imc < 25
+    ? tl("Poids normal", "Normal weight")
+    : imc < 30
+    ? tl("Surpoids", "Overweight")
+    : tl("Obésité", "Obesity");
   const color = imc < 18.5 ? "text-blue-600" : imc < 25 ? "text-green-600" : imc < 30 ? "text-orange-600" : "text-red-600";
   return (
     <div className="card border-cyan-100 bg-cyan-50">
-      <p className="text-xs text-cyan-700 uppercase tracking-wide font-semibold mb-1">IMC calculé</p>
+      <p className="text-xs text-cyan-700 uppercase tracking-wide font-semibold mb-1">{tl("IMC calculé", "Calculated BMI")}</p>
       <p className={`text-3xl font-bold ${color}`}>{imc.toFixed(1)}</p>
       <p className={`text-sm font-medium ${color}`}>{label}</p>
-      <p className="text-xs text-gray-400 mt-0.5">Taille : {heightCm} cm · Poids : {latest.value_primary} kg</p>
+      <p className="text-xs text-gray-400 mt-0.5">{tl("Taille", "Height")} : {heightCm} cm · {tl("Poids", "Weight")} : {latest.value_primary} kg</p>
     </div>
   );
 }
@@ -95,6 +166,9 @@ function ImcBlock({ weights, heightCm }: { weights: VitalMeasurement[]; heightCm
 interface Props { personId: string; initialData: VitalMeasurement[]; heightCm?: number | null }
 
 export default function MesuresClient({ personId, initialData, heightCm }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
+
   const [items, setItems] = useState<VitalMeasurement[]>(initialData);
   const [activeType, setActiveType] = useState<MeasurementType>("blood_pressure");
   const [showForm, setShowForm] = useState(false);
@@ -110,7 +184,7 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const cfg = TYPES.find((t) => t.value === activeType)!;
+  const cfg = TYPES.find((tp) => tp.value === activeType)!;
   const filtered = useMemo(
     () => items.filter((i) => i.measurement_type === activeType).sort((a, b) => a.measured_at.localeCompare(b.measured_at)),
     [items, activeType]
@@ -124,10 +198,10 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
   );
   const latest = filtered[filtered.length - 1];
 
-  function handleTypeChange(t: MeasurementType) {
-    setActiveType(t);
-    const c = TYPES.find((x) => x.value === t)!;
-    setForm((f) => ({ ...f, measurement_type: t, unit: c.unit, value_secondary: c.secondary ? (f.value_secondary ?? null) : null }));
+  function handleTypeChange(type: MeasurementType) {
+    setActiveType(type);
+    const c = TYPES.find((x) => x.value === type)!;
+    setForm((f) => ({ ...f, measurement_type: type, unit: c.unit, value_secondary: c.secondary ? (f.value_secondary ?? null) : null }));
     setShowForm(false);
   }
 
@@ -165,21 +239,22 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
 
   return (
     <div className="px-4 py-5 space-y-4">
-      <ImcBlock weights={weightMeasures} heightCm={heightCm ?? null} />
+      <WeightChart weights={weightMeasures} heightCm={heightCm ?? null} lang={lang} />
+      <ImcBlock weights={weightMeasures} heightCm={heightCm ?? null} lang={lang} />
 
       {/* Type selector */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
-        {TYPES.map((t) => (
+        {TYPES.map((tp) => (
           <button
-            key={t.value}
-            onClick={() => handleTypeChange(t.value)}
+            key={tp.value}
+            onClick={() => handleTypeChange(tp.value)}
             className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${
-              activeType === t.value
+              activeType === tp.value
                 ? "bg-health-blue text-white border-health-blue"
                 : "bg-white text-gray-600 border-gray-200"
             }`}
           >
-            <span>{t.icon}</span>{t.label}
+            <span>{tp.icon}</span>{t(tp.label, tp.labelEn)}
           </button>
         ))}
       </div>
@@ -188,9 +263,9 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
       {latest && (
         <div className={`rounded-xl border p-4 space-y-2 ${status === "alert" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}`}>
           <div className="flex justify-between items-center">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dernière mesure</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t("Dernière mesure", "Latest reading")}</p>
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status === "alert" ? "bg-red-100 text-red-700" : status === "normal" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
-              {status === "alert" ? "Hors norme" : status === "normal" ? "Normal" : "—"}
+              {status === "alert" ? t("Hors norme", "Out of range") : status === "normal" ? t("Normal", "Normal") : "—"}
             </span>
           </div>
           <p className="text-2xl font-bold text-gray-900">{formatVal(latest)}</p>
@@ -201,50 +276,50 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
       {/* Sparkline */}
       {filtered.length >= 2 && (
         <div className="card">
-          <p className="text-xs text-gray-500 mb-2">Évolution ({filtered.length} mesures)</p>
+          <p className="text-xs text-gray-500 mb-2">{t("Évolution", "Trend")} ({filtered.length} {t("mesures", "readings")})</p>
           <Sparkline values={sparkValues} normalMin={cfg.normalMin} normalMax={cfg.normalMax} />
-          {cfg.normalMin && <p className="text-xs text-gray-400 mt-1">Zone verte = plage normale</p>}
+          {cfg.normalMin && <p className="text-xs text-gray-400 mt-1">{t("Zone verte = plage normale", "Green zone = normal range")}</p>}
         </div>
       )}
 
       <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
-        {showForm ? "Annuler" : `+ Ajouter ${cfg.label.toLowerCase()}`}
+        {showForm ? t("Annuler", "Cancel") : `+ ${t("Ajouter", "Add")} ${t(cfg.label.toLowerCase(), cfg.labelEn.toLowerCase())}`}
       </button>
 
       {showForm && (
         <form onSubmit={handleAdd} className="card space-y-3">
           <div className={cfg.secondary ? "grid grid-cols-2 gap-3" : ""}>
             <div>
-              <label className="label">{cfg.secondary ? "Systolique" : "Valeur"} * ({cfg.unit})</label>
+              <label className="label">{cfg.secondary ? t("Systolique", "Systolic") : t("Valeur", "Value")} * ({cfg.unit})</label>
               <input name="value_primary" type="number" step="0.01" required className="input-field"
-                value={form.value_primary || ""} onChange={handleChange} placeholder={cfg.hint} />
+                value={form.value_primary || ""} onChange={handleChange} placeholder={cfg.hintEn && lang === "en" ? cfg.hintEn : cfg.hint} />
             </div>
             {cfg.secondary && (
               <div>
-                <label className="label">{cfg.secondary} ({cfg.unit})</label>
+                <label className="label">{t(cfg.secondary, cfg.secondaryEn ?? cfg.secondary)} ({cfg.unit})</label>
                 <input name="value_secondary" type="number" step="0.01" className="input-field"
                   value={form.value_secondary ?? ""} onChange={handleChange} />
               </div>
             )}
           </div>
           <div>
-            <label className="label">Date et heure</label>
+            <label className="label">{t("Date et heure", "Date and time")}</label>
             <input name="measured_at" type="datetime-local" className="input-field"
               value={form.measured_at ?? ""} onChange={handleChange} />
           </div>
           <div>
-            <label className="label">Contexte</label>
+            <label className="label">{t("Contexte", "Context")}</label>
             <select name="context" className="input-field" value={form.context ?? ""} onChange={handleChange}>
-              <option value="">— Choisir —</option>
-              {CONTEXTS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+              <option value="">{t("— Choisir —", "— Choose —")}</option>
+              {CONTEXTS.map((c) => <option key={c.value} value={c.value}>{t(c.label, c.labelEn)}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Notes</label>
+            <label className="label">{t("Notes", "Notes")}</label>
             <textarea name="notes" className="input-field resize-none" rows={2} value={form.notes ?? ""} onChange={handleChange} />
           </div>
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
           </button>
         </form>
       )}
@@ -252,13 +327,16 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
       {filtered.length === 0 && !showForm && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">{cfg.icon}</div>
-          <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+          <p className="font-semibold text-gray-800">{t("Aucune mesure enregistrée", "No reading recorded")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
-            Commence à suivre ta {cfg.label.toLowerCase()} pour observer ton évolution dans le temps.
+            {t(
+              `Commence à suivre ta ${cfg.label.toLowerCase()} pour observer ton évolution dans le temps.`,
+              `Start tracking your ${cfg.labelEn.toLowerCase()} to observe your progress over time.`
+            )}
           </p>
           <button onClick={() => setShowForm(true)}
             className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Ajouter une mesure
+            {t("+ Ajouter une mesure", "+ Add a reading")}
           </button>
         </div>
       )}
@@ -278,14 +356,14 @@ export default function MesuresClient({ personId, initialData, heightCm }: Props
                   <p className="font-semibold text-gray-900">{formatVal(item)}</p>
                   {s !== "unknown" && (
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${s === "alert" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-                      {s === "alert" ? "⚠ Hors norme" : "✓ Normal"}
+                      {s === "alert" ? t("⚠ Hors norme", "⚠ Out of range") : t("✓ Normal", "✓ Normal")}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-gray-400 mt-0.5">{new Date(item.measured_at).toLocaleString("fr-FR")}</p>
-                {item.context && <p className="text-xs text-gray-500">{CONTEXTS.find(c => c.value === item.context)?.label}</p>}
+                {item.context && <p className="text-xs text-gray-500">{t(CONTEXTS.find(c => c.value === item.context)?.label ?? "", CONTEXTS.find(c => c.value === item.context)?.labelEn ?? "")}</p>}
                 <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id} className="text-red-400 text-xs mt-1">
-                  {deletingId === item.id ? "Suppression…" : "Supprimer"}
+                  {deletingId === item.id ? t("Suppression…", "Deleting…") : t("Supprimer", "Delete")}
                 </button>
               </div>
             </div>

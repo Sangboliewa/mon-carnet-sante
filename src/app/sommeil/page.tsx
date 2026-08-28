@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentPerson } from "@/lib/getCurrentPerson";
@@ -16,7 +16,7 @@ export default async function SommeilPage() {
     <div>
       <div className="bg-gradient-to-br from-indigo-600 to-purple-800 px-4 pt-12 pb-5">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-white/80 text-sm">â†</Link>
+          <Link href="/dashboard" className="text-white/80 text-sm">←</Link>
           <div>
             <h1 className="text-white text-xl font-bold">😴 Suivi sommeil</h1>
             <p className="text-indigo-200 text-xs">{person.first_name}</p>
@@ -27,4 +27,3 @@ export default async function SommeilPage() {
     </div>
   );
 }
-

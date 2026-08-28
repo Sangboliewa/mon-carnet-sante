@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface ActivityLog {
   id: string;
@@ -160,6 +161,8 @@ function WeeklyGoal({ logs }: { logs: ActivityLog[] }) {
 }
 
 export default function ActiviteClient({ personId, heightCm, weightKg }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -220,7 +223,7 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
       notes: form.notes || null,
     };
     const { data, error: err } = await supabase.from("activity_logs").insert(payload).select().single();
-    if (err || !data) { setError(err?.message ?? "Erreur"); setSaving(false); return; }
+    if (err || !data) { setError(err?.message ?? t("Erreur", "Error")); setSaving(false); return; }
     setLogs((prev) => [data as ActivityLog, ...prev]);
     setForm({ log_date: todayStr(), activity_type: "marche", duration_min: "", steps: "", distance_km: "", intensity: "modere", notes: "" });
     setShowForm(false);
@@ -228,13 +231,13 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Supprimer cette activité ?")) return;
+    if (!confirm(t("Supprimer cette activité ?", "Delete this activity?"))) return;
     const supabase = createClient();
     await supabase.from("activity_logs").delete().eq("id", id);
     setLogs((prev) => prev.filter((l) => l.id !== id));
   }
 
-  if (loading) return <div className="px-4 py-10 text-center text-gray-400 text-sm">Chargement…</div>;
+  if (loading) return <div className="px-4 py-10 text-center text-gray-400 text-sm">{t("Chargement…", "Loading…")}</div>;
 
   return (
     <div className="px-4 py-5 space-y-4">
@@ -278,7 +281,7 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
       {todayLogs.length === 0 && !showForm && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">🏅</div>
-          <p className="font-semibold text-gray-800">Aucune activité enregistrée ce jour</p>
+          <p className="font-semibold text-gray-800">{t("Aucune activité enregistrée ce jour", "No activities recorded today")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
             Même 15 minutes de marche comptent ! Commence dès maintenant.
           </p>
@@ -410,9 +413,9 @@ export default function ActiviteClient({ personId, heightCm, weightKg }: Props) 
           </div>
 
           <div className="flex gap-3">
-            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Annuler</button>
+            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">{t("Annuler", "Cancel")}</button>
             <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? "Enregistrement…" : "Ajouter"}
+              {saving ? t("Enregistrement…", "Saving…") : t("Ajouter", "Add")}
             </button>
           </div>
         </form>

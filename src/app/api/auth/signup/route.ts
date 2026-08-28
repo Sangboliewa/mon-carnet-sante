@@ -6,6 +6,7 @@ export async function POST(req: NextRequest) {
   let password = "";
   let firstName = "";
   let lastName = "";
+  let role = "patient";
 
   const contentType = req.headers.get("content-type") ?? "";
 
@@ -15,12 +16,14 @@ export async function POST(req: NextRequest) {
     password = (formData.get("password") as string) ?? "";
     firstName = (formData.get("firstName") as string) ?? "";
     lastName = (formData.get("lastName") as string) ?? "";
+    role = (formData.get("role") as string) ?? "patient";
   } else {
-    const body = await req.json() as { email?: string; password?: string; firstName?: string; lastName?: string };
+    const body = await req.json() as { email?: string; password?: string; firstName?: string; lastName?: string; role?: string };
     email = body.email ?? "";
     password = body.password ?? "";
     firstName = body.firstName ?? "";
     lastName = body.lastName ?? "";
+    role = body.role ?? "patient";
   }
 
   if (!email || !password || !firstName) {
@@ -81,8 +84,9 @@ export async function POST(req: NextRequest) {
     last_name: lastName,
   });
 
-  // Redirect to dashboard — set session cookies explicitly on the redirect response
-  const response = NextResponse.redirect(new URL("/dashboard", req.url));
+  // Redirect based on role
+  const afterSignup = role === "doctor" ? "/espace-medecin?new=1" : "/bienvenue";
+  const response = NextResponse.redirect(new URL(afterSignup, req.url));
   cookiesToSet.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, options);
   });

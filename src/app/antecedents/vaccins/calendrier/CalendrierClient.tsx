@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { COUNTRY_CALENDARS, getMissingVaccines } from "@/lib/vaccination-calendars";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import type { VaccineScheduleEntry } from "@/lib/vaccination-calendars";
 
 interface Props {
@@ -29,6 +30,8 @@ function groupByAge(entries: VaccineScheduleEntry[]) {
 }
 
 export default function CalendrierClient({ receivedNames, ageMonths, personFirstName }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [selectedCountry, setSelectedCountry] = useState("CI");
   const [filterMissing, setFilterMissing] = useState(false);
   const [expandedAge, setExpandedAge] = useState<string | null>(null);
@@ -134,7 +137,7 @@ export default function CalendrierClient({ receivedNames, ageMonths, personFirst
       <div className="space-y-3">
         {grouped.length === 0 && (
           <p className="text-center text-gray-400 text-sm py-8">
-            {filterMissing ? "✅ Aucun vaccin manquant pour cet âge !" : "Aucun vaccin dans ce calendrier"}
+            {filterMissing ? t("✅ Aucun vaccin manquant pour cet âge !", "✅ No missing vaccines for this age!") : t("Aucun vaccin dans ce calendrier", "No vaccines in this schedule")}
           </p>
         )}
 

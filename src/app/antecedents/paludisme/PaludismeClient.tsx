@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { MalariaEpisodeRow, MalariaEpisodeInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 const BLANK: Omit<MalariaEpisodeInsert, "person_id"> = {
   episode_date: new Date().toISOString().slice(0, 10),
@@ -75,6 +76,8 @@ interface Props {
 }
 
 export default function PaludismeClient({ personId, initialData }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [items, setItems] = useState<MalariaEpisodeRow[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Omit<MalariaEpisodeInsert, "person_id">>(BLANK);
@@ -138,7 +141,7 @@ export default function PaludismeClient({ personId, initialData }: Props) {
         onClick={() => setShowForm(v => !v)}
         className="w-full py-3 rounded-xl bg-orange-600 text-white font-semibold text-sm"
       >
-        {showForm ? "Annuler" : "+ Nouvel épisode"}
+        {showForm ? t("Annuler", "Cancel") : t("+ Nouvel épisode", "+ New episode")}
       </button>
 
       {/* Form */}
@@ -328,7 +331,7 @@ export default function PaludismeClient({ personId, initialData }: Props) {
 
           <button type="submit" disabled={saving}
             className="w-full py-3 rounded-xl bg-orange-600 text-white font-semibold text-sm disabled:opacity-60">
-            {saving ? "Enregistrement…" : "Enregistrer l'épisode"}
+            {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer l'épisode", "Save episode")}
           </button>
         </form>
       )}
@@ -337,13 +340,13 @@ export default function PaludismeClient({ personId, initialData }: Props) {
       {items.length === 0 && !showForm && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">🦟</div>
-          <p className="font-semibold text-gray-800">Aucun épisode enregistré</p>
+          <p className="font-semibold text-gray-800">{t("Aucun épisode enregistré", "No episodes recorded")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
             Consigne chaque épisode de paludisme pour suivre ta santé et informer ton médecin.
           </p>
           <button onClick={() => setShowForm(true)}
             className="inline-block bg-orange-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Nouvel épisode
+            {t("+ Nouvel épisode", "+ New episode")}
           </button>
         </div>
       )}
@@ -377,7 +380,7 @@ export default function PaludismeClient({ personId, initialData }: Props) {
                 {ep.headache && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Maux de tête</span>}
                 {ep.vomiting && <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">Vomissements</span>}
                 {ep.fatigue && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Fatigue</span>}
-                {symptCount === 0 && <span className="text-xs text-gray-400">Aucun symptôme enregistré</span>}
+                {symptCount === 0 && <span className="text-xs text-gray-400">{t("Aucun symptôme enregistré", "No symptoms recorded")}</span>}
               </div>
 
               <div className="flex gap-2 text-xs text-gray-600 flex-wrap">
@@ -404,7 +407,7 @@ export default function PaludismeClient({ personId, initialData }: Props) {
                 disabled={deletingId === ep.id}
                 className="text-xs text-red-400 hover:text-red-600 pt-1"
               >
-                {deletingId === ep.id ? "Suppression…" : "Supprimer"}
+                {deletingId === ep.id ? t("Suppression…", "Deleting…") : t("Supprimer", "Delete")}
               </button>
               </div>
             </div>

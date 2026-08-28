@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentPerson } from "@/lib/getCurrentPerson";
@@ -16,10 +16,10 @@ export default async function SyncMontrePage() {
     <div>
       <div className="bg-gradient-to-br from-purple-700 to-indigo-700 px-4 pt-12 pb-5">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-white/80 text-sm">â†</Link>
+          <Link href="/dashboard" className="text-white/80 text-sm">←</Link>
           <div>
-            <h1 className="text-white text-xl font-bold">Montre & SantÃ© connectÃ©e</h1>
-            <p className="text-purple-200 text-xs">Synchroniser vos donnÃ©es depuis vos appareils</p>
+            <h1 className="text-white text-xl font-bold">Montre & Santé connectée</h1>
+            <p className="text-purple-200 text-xs">Synchroniser vos données depuis vos appareils</p>
           </div>
         </div>
       </div>
@@ -27,4 +27,3 @@ export default async function SyncMontrePage() {
     </div>
   );
 }
-

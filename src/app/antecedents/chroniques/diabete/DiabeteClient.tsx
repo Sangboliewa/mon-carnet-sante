@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface DiabeteRecord {
   id: string;
@@ -19,12 +20,19 @@ interface Props {
   initial: DiabeteRecord[];
 }
 
-const MEAL_LABELS: Record<string, string> = {
+const MEAL_LABELS_FR: Record<string, string> = {
   fasting: "À jeun",
   before_meal: "Avant repas",
   after_meal: "Après repas",
   bedtime: "Coucher",
   other: "Autre",
+};
+const MEAL_LABELS_EN: Record<string, string> = {
+  fasting: "Fasting",
+  before_meal: "Before meal",
+  after_meal: "After meal",
+  bedtime: "Bedtime",
+  other: "Other",
 };
 
 function glucoseStatus(val: number | null, context: string | null): "normal" | "warning" | "danger" | null {
@@ -46,6 +54,9 @@ const STATUS_COLORS = {
 };
 
 export default function DiabeteClient({ personId, initial }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
+  const MEAL_LABELS = lang === "en" ? MEAL_LABELS_EN : MEAL_LABELS_FR;
   const [records, setRecords] = useState(initial);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -101,11 +112,11 @@ export default function DiabeteClient({ personId, initial }: Props) {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className="text-2xl font-bold text-amber-600">{records.length}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Mesures</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t("Mesures", "Readings")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className="text-2xl font-bold text-gray-800">{avgFasting ?? "–"}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Moy. à jeun</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t("Moy. à jeun", "Avg. fasting")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className={`text-2xl font-bold ${lastHba1c && lastHba1c > 7 ? "text-red-600" : "text-green-600"}`}>
@@ -117,28 +128,28 @@ export default function DiabeteClient({ personId, initial }: Props) {
 
       {dangerCount > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-          <p className="text-sm text-red-700 font-medium">⚠️ {dangerCount} mesure(s) en zone danger (glycémie &gt; 1,26 g/L à jeun)</p>
+          <p className="text-sm text-red-700 font-medium">⚠️ {dangerCount} {t("mesure(s) en zone danger (glycémie > 1,26 g/L à jeun)", "reading(s) in danger zone (fasting glucose > 1.26 g/L)")}</p>
         </div>
       )}
 
       <button onClick={() => setShowForm(!showForm)}
         className="w-full py-3 rounded-2xl bg-amber-500 text-white font-semibold text-sm active:opacity-80">
-        + Nouvelle mesure
+        + {t("Nouvelle mesure", "New reading")}
       </button>
 
       {showForm && (
         <div className="bg-white rounded-2xl border p-4 space-y-3">
-          <p className="font-semibold text-gray-900">Nouvelle mesure</p>
+          <p className="font-semibold text-gray-900">{t("Nouvelle mesure", "New reading")}</p>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Date & heure</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Date & heure", "Date & time")}</label>
             <input type="datetime-local" value={form.recorded_at}
               onChange={e => setForm({ ...form, recorded_at: e.target.value })}
               className="input mt-1" />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Contexte mesure</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Contexte mesure", "Measurement context")}</label>
             <div className="grid grid-cols-3 gap-2 mt-1">
               {Object.entries(MEAL_LABELS).map(([v, l]) => (
                 <button key={v} type="button"
@@ -152,14 +163,14 @@ export default function DiabeteClient({ personId, initial }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Glycémie à jeun (g/L)</label>
-              <input type="number" step="0.01" placeholder="ex: 0.95" value={form.glucose_fasting}
+              <label className="text-xs text-gray-500 font-medium">{t("Glycémie à jeun (g/L)", "Fasting glucose (g/L)")}</label>
+              <input type="number" step="0.01" placeholder={t("ex: 0.95", "e.g. 0.95")} value={form.glucose_fasting}
                 onChange={e => setForm({ ...form, glucose_fasting: e.target.value })}
                 className="input mt-1" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Post-prandiale (g/L)</label>
-              <input type="number" step="0.01" placeholder="ex: 1.40" value={form.glucose_postprandial}
+              <label className="text-xs text-gray-500 font-medium">{t("Post-prandiale (g/L)", "Post-prandial (g/L)")}</label>
+              <input type="number" step="0.01" placeholder={t("ex: 1.40", "e.g. 1.40")} value={form.glucose_postprandial}
                 onChange={e => setForm({ ...form, glucose_postprandial: e.target.value })}
                 className="input mt-1" />
             </div>
@@ -173,8 +184,8 @@ export default function DiabeteClient({ personId, initial }: Props) {
                 className="input mt-1" />
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Insuline (UI)</label>
-              <input type="number" placeholder="ex: 10" value={form.insulin_units}
+              <label className="text-xs text-gray-500 font-medium">{t("Insuline (UI)", "Insulin (IU)")}</label>
+              <input type="number" placeholder={t("ex: 10", "e.g. 10")} value={form.insulin_units}
                 onChange={e => setForm({ ...form, insulin_units: e.target.value })}
                 className="input mt-1" />
             </div>
@@ -184,20 +195,20 @@ export default function DiabeteClient({ personId, initial }: Props) {
             <input type="checkbox" checked={form.oral_meds_taken}
               onChange={e => setForm({ ...form, oral_meds_taken: e.target.checked })}
               className="w-4 h-4 accent-amber-500" />
-            <span className="text-sm text-gray-700">Médicament(s) oral(aux) pris</span>
+            <span className="text-sm text-gray-700">{t("Médicament(s) oral(aux) pris", "Oral medication(s) taken")}</span>
           </label>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Notes</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Notes", "Notes")}</label>
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-              placeholder="Symptômes, remarques..." rows={2} className="input mt-1 resize-none" />
+              placeholder={t("Symptômes, remarques...", "Symptoms, remarks...")} rows={2} className="input mt-1 resize-none" />
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">Annuler</button>
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">{t("Annuler", "Cancel")}</button>
             <button onClick={save} disabled={saving}
               className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-semibold disabled:opacity-50">
-              {saving ? "Enregistrement…" : "Enregistrer"}
+              {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
             </button>
           </div>
         </div>
@@ -208,13 +219,13 @@ export default function DiabeteClient({ personId, initial }: Props) {
         {records.length === 0 && (
           <div className="card text-center py-10 space-y-3">
             <div className="text-5xl">🩸</div>
-            <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+            <p className="font-semibold text-gray-800">{t("Aucune mesure enregistrée", "No readings recorded")}</p>
             <p className="text-sm text-gray-500 leading-relaxed px-4">
-              Suis ta glycémie et ton HbA1c pour mieux gérer ton diabète au quotidien.
+              {t("Suis ta glycémie et ton HbA1c pour mieux gérer ton diabète au quotidien.", "Track your glucose and HbA1c to better manage your diabetes daily.")}
             </p>
             <button onClick={() => setShowForm(true)}
               className="inline-block bg-amber-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-              + Nouvelle mesure
+              + {t("Nouvelle mesure", "New reading")}
             </button>
           </div>
         )}
@@ -238,13 +249,13 @@ export default function DiabeteClient({ personId, initial }: Props) {
               <div className="flex flex-wrap gap-3 mt-2">
                 {r.glucose_fasting && (
                   <div>
-                    <p className="text-xs text-gray-500">À jeun</p>
+                    <p className="text-xs text-gray-500">{t("À jeun", "Fasting")}</p>
                     <p className="text-lg font-bold">{r.glucose_fasting} <span className="text-xs font-normal">g/L</span></p>
                   </div>
                 )}
                 {r.glucose_postprandial && (
                   <div>
-                    <p className="text-xs text-gray-500">Post-prandiale</p>
+                    <p className="text-xs text-gray-500">{t("Post-prandiale", "Post-prandial")}</p>
                     <p className="text-lg font-bold">{r.glucose_postprandial} <span className="text-xs font-normal">g/L</span></p>
                   </div>
                 )}
@@ -256,12 +267,12 @@ export default function DiabeteClient({ personId, initial }: Props) {
                 )}
                 {r.insulin_units && (
                   <div>
-                    <p className="text-xs text-gray-500">Insuline</p>
+                    <p className="text-xs text-gray-500">{t("Insuline", "Insulin")}</p>
                     <p className="text-lg font-bold">{r.insulin_units} <span className="text-xs font-normal">UI</span></p>
                   </div>
                 )}
               </div>
-              {r.oral_meds_taken && <p className="text-xs text-gray-500 mt-1">💊 Médicaments pris</p>}
+              {r.oral_meds_taken && <p className="text-xs text-gray-500 mt-1">💊 {t("Médicaments pris", "Medication taken")}</p>}
               {r.notes && <p className="text-sm text-gray-600 mt-1 italic">{r.notes}</p>}
               </div>
             </div>

@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentPerson } from "@/lib/getCurrentPerson";
@@ -30,7 +30,7 @@ export default async function PartagePage() {
 
   return (
     <div>
-      <PageHeader title="Partage temporaire" subtitle="Liens sÃ©curisÃ©s Ã  durÃ©e limitÃ©e" />
+      <PageHeader title="Partage temporaire" subtitle="Liens sécurisés à durée limitée" />
       <PartageClient
         personId={person.id}
         userId={user.id}
@@ -40,4 +40,3 @@ export default async function PartagePage() {
     </div>
   );
 }
-

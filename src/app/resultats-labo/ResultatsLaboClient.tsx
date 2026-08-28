@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { LabResult, LabResultInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 // ─── Référentiel intégré ─────────────────────────────────────────────────────
 
@@ -108,6 +109,7 @@ function RangeBar({ value, refMin, refMax, unit }: { value: number; refMin: numb
 interface Props { personId: string; gender: string | null; initialData: LabResult[] }
 
 export default function ResultatsLaboClient({ personId, gender, initialData }: Props) {
+  const { t } = useLang();
   const [items, setItems] = useState<LabResult[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [filterCat, setFilterCat] = useState<string>("all");
@@ -201,7 +203,7 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
       )}
 
       <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
-        {showForm ? "Annuler" : "+ Saisir un résultat"}
+        {showForm ? t("cancel") : t("enterResult")}
       </button>
 
       {showForm && (
@@ -266,7 +268,7 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
             <textarea className="input-field resize-none" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? "Enregistrement…" : "Enregistrer"}
+            {saving ? t("saving") : t("save")}
           </button>
         </form>
       )}
@@ -291,7 +293,7 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
             Enregistre tes résultats de laboratoire pour suivre dans le temps hémoglobine, glycémie, cholestérol et bien plus.
           </p>
           <button onClick={() => setShowForm(true)} className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            + Ajouter un résultat
+            {t("addResult")}
           </button>
         </div>
       )}
@@ -320,7 +322,7 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
                   {r.lab_name && <p className="text-xs text-gray-400">{r.lab_name}</p>}
                   {r.notes && <p className="text-xs text-gray-500 italic">{r.notes}</p>}
                   <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id} className="text-red-400 text-xs mt-1">
-                    {deletingId === r.id ? "…" : "Supprimer"}
+                    {deletingId === r.id ? "…" : t("delete")}
                   </button>
                 </div>
               </div>

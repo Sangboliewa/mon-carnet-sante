@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface SmsReminder {
   id: string;
@@ -29,6 +30,8 @@ const TYPE_LABELS: Record<string, string> = {
 const CHANNEL_ICONS: Record<string, string> = { sms: "📱", whatsapp: "💬" };
 
 export default function SmsRappelsClient({ personId, initial, twilioConfigured }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [reminders, setReminders] = useState(initial);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -89,9 +92,9 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
       const json = await res.json() as { sent?: number; results?: { success: boolean; error?: string }[] };
       const ok = (json.sent ?? 0) > 0;
       const err = json.results?.[0]?.error;
-      setTestResult({ id, ok, msg: ok ? "✓ Message envoyé !" : `Erreur: ${err ?? "inconnue"}` });
+      setTestResult({ id, ok, msg: ok ? t("✓ Message envoyé !", "✓ Message sent!") : `${t("Erreur", "Error")}: ${err ?? t("inconnue", "unknown")}` });
     } catch {
-      setTestResult({ id, ok: false, msg: "Erreur réseau" });
+      setTestResult({ id, ok: false, msg: t("Erreur réseau", "Network error") });
     }
     setTestingId(null);
   }
@@ -103,14 +106,14 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${twilioConfigured ? "bg-green-500" : "bg-amber-500"}`} />
           <p className={`text-sm font-semibold ${twilioConfigured ? "text-green-700" : "text-amber-700"}`}>
-            {twilioConfigured ? "Twilio connecté — envoi SMS/WhatsApp actif" : "Twilio non configuré — mode simulation"}
+            {twilioConfigured ? t("Twilio connecté — envoi SMS/WhatsApp actif", "Twilio connected — SMS/WhatsApp sending active") : t("Twilio non configuré — mode simulation", "Twilio not configured — simulation mode")}
           </p>
         </div>
         {!twilioConfigured && (
           <p className="text-xs text-amber-600 mt-1.5">
-            Pour activer les envois réels, ajoutez <code className="bg-amber-100 px-1 rounded">TWILIO_ACCOUNT_SID</code>,{" "}
-            <code className="bg-amber-100 px-1 rounded">TWILIO_AUTH_TOKEN</code> et{" "}
-            <code className="bg-amber-100 px-1 rounded">TWILIO_FROM_NUMBER</code> dans les variables Vercel.
+            {t("Pour activer les envois réels, ajoutez", "To enable real sending, add")} <code className="bg-amber-100 px-1 rounded">TWILIO_ACCOUNT_SID</code>,{" "}
+            <code className="bg-amber-100 px-1 rounded">TWILIO_AUTH_TOKEN</code> {t("et", "and")}{" "}
+            <code className="bg-amber-100 px-1 rounded">TWILIO_FROM_NUMBER</code> {t("dans les variables Vercel.", "in your Vercel environment variables.")}
           </p>
         )}
       </div>
@@ -119,26 +122,26 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className="text-2xl font-bold text-blue-600">{reminders.filter(r => r.active).length}</p>
-          <p className="text-xs text-gray-500">Rappels actifs</p>
+          <p className="text-xs text-gray-500">{t("Rappels actifs", "Active reminders")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-3 text-center">
           <p className="text-2xl font-bold text-green-600">{reminders.filter(r => r.channel === "whatsapp").length}</p>
-          <p className="text-xs text-gray-500">Via WhatsApp</p>
+          <p className="text-xs text-gray-500">{t("Via WhatsApp", "Via WhatsApp")}</p>
         </div>
       </div>
 
       <button onClick={() => setShowForm(!showForm)}
         className="w-full py-3 rounded-2xl bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold text-sm active:opacity-80">
-        + Nouveau rappel SMS/WhatsApp
+        + {t("Nouveau rappel SMS/WhatsApp", "New SMS/WhatsApp reminder")}
       </button>
 
       {showForm && (
         <div className="bg-white rounded-2xl border p-4 space-y-4">
-          <p className="font-semibold text-gray-900">Nouveau rappel</p>
+          <p className="font-semibold text-gray-900">{t("Nouveau rappel", "New reminder")}</p>
 
           {/* Canal */}
           <div>
-            <label className="text-xs text-gray-500 font-medium block mb-1.5">Canal d'envoi</label>
+            <label className="text-xs text-gray-500 font-medium block mb-1.5">{t("Canal d'envoi", "Send channel")}</label>
             <div className="grid grid-cols-2 gap-2">
               {(["whatsapp", "sms"] as const).map(ch => (
                 <button key={ch} onClick={() => setForm(f => ({ ...f, channel: ch }))}
@@ -154,7 +157,7 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
 
           {/* Type */}
           <div>
-            <label className="text-xs text-gray-500 font-medium block mb-1.5">Type de rappel</label>
+            <label className="text-xs text-gray-500 font-medium block mb-1.5">{t("Type de rappel", "Reminder type")}</label>
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(TYPE_LABELS).map(([v, l]) => (
                 <button key={v} onClick={() => setForm(f => ({ ...f, reminder_type: v }))}
@@ -169,28 +172,28 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
 
           {/* Téléphone */}
           <div>
-            <label className="text-xs text-gray-500 font-medium">Numéro de téléphone *</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Numéro de téléphone *", "Phone number *")}</label>
             <div className="flex gap-2 mt-1">
               <div className="bg-gray-100 rounded-xl px-3 flex items-center text-sm text-gray-500">+225</div>
               <input type="tel" placeholder="0701234567" value={form.phone_number}
                 onChange={e => setForm(f => ({ ...f, phone_number: e.target.value.startsWith("+") ? e.target.value : `+225${e.target.value.replace(/^0/, "")}` }))}
                 className="input flex-1" />
             </div>
-            <p className="text-xs text-gray-400 mt-1">Format international : +225XXXXXXXXXX</p>
+            <p className="text-xs text-gray-400 mt-1">{t("Format international : +225XXXXXXXXXX", "International format: +225XXXXXXXXXX")}</p>
           </div>
 
           {/* Message */}
           <div>
-            <label className="text-xs text-gray-500 font-medium">Message / médicament *</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Message / médicament *", "Message / medication *")}</label>
             <textarea value={form.message}
               onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-              placeholder={form.reminder_type === "medication" ? "ex: Metformine 500mg — 1 comprimé" : "ex: RDV Dr. Koné demain à 10h"}
+              placeholder={form.reminder_type === "medication" ? t("ex: Metformine 500mg — 1 comprimé", "e.g. Metformin 500mg — 1 tablet") : t("ex: RDV Dr. Koné demain à 10h", "e.g. Appt Dr. Koné tomorrow at 10am")}
               rows={2} className="input mt-1 resize-none" />
           </div>
 
           {/* Heure */}
           <div>
-            <label className="text-xs text-gray-500 font-medium">Heure d'envoi</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Heure d'envoi", "Send time")}</label>
             <input type="time" value={form.send_time}
               onChange={e => setForm(f => ({ ...f, send_time: e.target.value }))}
               className="input mt-1" />
@@ -198,7 +201,7 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
 
           {/* Jours */}
           <div>
-            <label className="text-xs text-gray-500 font-medium block mb-2">Jours de la semaine</label>
+            <label className="text-xs text-gray-500 font-medium block mb-2">{t("Jours de la semaine", "Days of the week")}</label>
             <div className="flex gap-1.5 flex-wrap">
               {DAYS.map((d, i) => (
                 <button key={i} onClick={() => toggleDay(i)}
@@ -214,10 +217,10 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">Annuler</button>
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">{t("Annuler", "Cancel")}</button>
             <button onClick={save} disabled={saving || !form.phone_number || !form.message}
               className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold disabled:opacity-50">
-              {saving ? "Enregistrement…" : "Créer le rappel"}
+              {saving ? t("Enregistrement…", "Saving…") : t("Créer le rappel", "Create reminder")}
             </button>
           </div>
         </div>
@@ -228,13 +231,13 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
         {reminders.length === 0 && (
           <div className="card text-center py-10 space-y-3">
             <div className="text-5xl">💬</div>
-            <p className="font-semibold text-gray-800">Aucun rappel configuré</p>
+            <p className="font-semibold text-gray-800">{t("Aucun rappel configuré", "No reminders configured")}</p>
             <p className="text-sm text-gray-500 leading-relaxed px-4">
-              Reçois tes rappels médicaments directement sur WhatsApp ou par SMS, à l&apos;heure exacte.
+              {t("Reçois tes rappels médicaments directement sur WhatsApp ou par SMS, à l'heure exacte.", "Receive your medication reminders directly on WhatsApp or by SMS, at the exact time.")}
             </p>
             <button onClick={() => setShowForm(true)}
               className="inline-block bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-              + Créer un rappel
+              + {t("Créer un rappel", "Create a reminder")}
             </button>
           </div>
         )}
@@ -265,7 +268,7 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
                       className={`relative w-11 h-6 rounded-full transition-colors ${r.active ? "bg-green-500" : "bg-gray-300"}`}>
                       <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${r.active ? "translate-x-6" : "translate-x-1"}`} />
                     </button>
-                    <button onClick={() => remove(r.id)} className="text-red-400 text-xs">Supprimer</button>
+                    <button onClick={() => remove(r.id)} className="text-red-400 text-xs">{t("Supprimer", "Delete")}</button>
                   </div>
                 </div>
 
@@ -273,7 +276,7 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
                   <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-2">
                     <button onClick={() => testSend(r.id)} disabled={testingId === r.id}
                       className="flex-1 py-2 rounded-xl border border-blue-200 text-blue-600 text-xs font-medium bg-blue-50 disabled:opacity-50 active:opacity-80">
-                      {testingId === r.id ? "Envoi en cours…" : `${twilioConfigured ? "Envoyer maintenant" : "Tester (simulation)"}`}
+                      {testingId === r.id ? t("Envoi en cours…", "Sending…") : `${twilioConfigured ? t("Envoyer maintenant", "Send now") : t("Tester (simulation)", "Test (simulation)")}`}
                     </button>
                     {testResult?.id === r.id && (
                       <p className={`text-xs font-medium ${testResult.ok ? "text-green-600" : "text-red-600"}`}>{testResult.msg}</p>
@@ -288,11 +291,11 @@ export default function SmsRappelsClient({ personId, initial, twilioConfigured }
 
       {/* Info cron */}
       <div className="bg-gray-50 rounded-2xl border p-4 text-xs text-gray-500 space-y-1.5">
-        <p className="font-semibold text-gray-700">⚙️ Comment ça marche ?</p>
-        <p>1. Créez un rappel avec le numéro et l'heure souhaitée</p>
-        <p>2. Un cron Vercel appelle <code className="bg-gray-200 px-1 rounded">/api/send-reminder</code> toutes les 5 min</p>
-        <p>3. Les messages sont envoyés automatiquement aux heures programmées</p>
-        <p className="text-amber-600 font-medium mt-1">WhatsApp recommandé pour l'Afrique de l'Ouest — meilleure délivrabilité que le SMS</p>
+        <p className="font-semibold text-gray-700">⚙️ {t("Comment ça marche ?", "How does it work?")}</p>
+        <p>1. {t("Créez un rappel avec le numéro et l'heure souhaitée", "Create a reminder with the number and desired time")}</p>
+        <p>2. {t("Un cron Vercel appelle", "A Vercel cron calls")} <code className="bg-gray-200 px-1 rounded">/api/send-reminder</code> {t("toutes les 5 min", "every 5 min")}</p>
+        <p>3. {t("Les messages sont envoyés automatiquement aux heures programmées", "Messages are sent automatically at scheduled times")}</p>
+        <p className="text-amber-600 font-medium mt-1">{t("WhatsApp recommandé pour l'Afrique de l'Ouest — meilleure délivrabilité que le SMS", "WhatsApp recommended for West Africa — better deliverability than SMS")}</p>
       </div>
     </div>
   );

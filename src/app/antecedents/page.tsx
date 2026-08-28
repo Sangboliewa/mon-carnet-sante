@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -74,7 +74,7 @@ export default async function AntecedentsPage() {
       sublabel: "Médicaments en cours ou passés",
       count: traitementsCount ?? 0,
       accent: "text-blue-600", accentBg: "bg-blue-50 border-blue-200",
-      tip: "Visible par ABIBA pour ses réponses",
+      tip: "Visible par By' pour ses réponses",
     },
     {
       href: "/antecedents/vaccins",

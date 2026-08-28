@@ -27,7 +27,7 @@ export default async function PediatriquePage() {
 
   return (
     <div>
-      <PageHeader title="Suivi pÃ©diatrique" subtitle={`${person.first_name} ${person.last_name}`} back />
+      <PageHeader title="Suivi pédiatrique" subtitle={`${person.first_name} ${person.last_name}`} back />
       <PediatriqueClient personId={person.id} ageMonths={ageMonths} initialData={records ?? []} />
     </div>
   );

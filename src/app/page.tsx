@@ -6,7 +6,7 @@ const FEATURES = [
   { icon: "📋", title: "Antécédents complets", desc: "Allergies, maladies, vaccins, traitements" },
   { icon: "🩺", title: "Consultations", desc: "Carnet médical, résultats labo, ordonnances" },
   { icon: "💊", title: "Rappels médicaments", desc: "Notifications push + WhatsApp" },
-  { icon: "🤖", title: "ABIBA — IA médicale", desc: "Vos examens expliqués en français" },
+  { icon: "🤖", title: "By' — IA médicale", desc: "Vos examens expliqués en français" },
   { icon: "👨‍👩‍👧", title: "Gestion famille", desc: "Profils multiples, chaque membre a son carnet" },
   { icon: "🥗", title: "Nutrition", desc: "Journal alimentaire, eau, calories, macros" },
   { icon: "🚨", title: "Carte d'urgence", desc: "Accès rapide sans connexion — numéros locaux" },
@@ -26,7 +26,7 @@ const STEPS = [
 const TESTIMONIALS = [
   { name: "Aïcha K.", role: "Mère de famille, Abidjan", text: "Je gère les carnets de santé de mes 3 enfants depuis une seule appli. Fini les papiers perdus !", flag: "🇨🇮" },
   { name: "Dr. Moussa D.", role: "Médecin généraliste, Dakar", text: "Mes patients arrivent avec un QR code et je vois tout l'historique en secondes. Révolutionnaire.", flag: "🇸🇳" },
-  { name: "Fatou T.", role: "Infirmière, Ouagadougou", text: "ABIBA explique les résultats à mes patients qui ne comprennent pas les ordonnances. Très utile.", flag: "🇧🇫" },
+  { name: "Fatou T.", role: "Infirmière, Ouagadougou", text: "By' explique les résultats à mes patients qui ne comprennent pas les ordonnances. Très utile.", flag: "🇧🇫" },
 ];
 
 const COUNTRIES = [
@@ -160,15 +160,15 @@ export default async function LandingPage() {
         </div>
       </div>
 
-      {/* ABIBA IA */}
+      {/* By' IA */}
       <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 px-5 py-12 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
         <div className="max-w-lg mx-auto text-center relative">
           <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4">🤖</div>
-          <h2 className="text-white text-2xl font-bold">Rencontrez ABIBA</h2>
+          <h2 className="text-white text-2xl font-bold">Rencontrez By'</h2>
           <p className="text-indigo-200 text-sm mt-1 font-medium">Votre assistante médicale IA</p>
           <p className="text-indigo-100 text-sm mt-4 leading-relaxed max-w-sm mx-auto">
-            Posez vos questions de santé en français. ABIBA explique vos résultats d&apos;analyses, identifie les interactions médicamenteuses et vous oriente vers les bons spécialistes.
+            Posez vos questions de santé en français. By' explique vos résultats d&apos;analyses, identifie les interactions médicamenteuses et vous oriente vers les bons spécialistes.
           </p>
           <div className="mt-6 bg-white/10 rounded-2xl p-4 text-left max-w-sm mx-auto">
             <p className="text-white/60 text-xs uppercase tracking-wide mb-2">Exemple de question</p>
@@ -178,7 +178,7 @@ export default async function LandingPage() {
           </div>
           <Link href="/signup"
             className="inline-block mt-6 bg-white text-indigo-700 font-bold text-sm px-8 py-3 rounded-2xl shadow-lg active:scale-95 transition-transform">
-            Essayer ABIBA gratuitement
+            Essayer By' gratuitement
           </Link>
         </div>
       </div>

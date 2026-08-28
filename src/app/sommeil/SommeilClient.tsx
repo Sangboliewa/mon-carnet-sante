@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface SleepLog {
   id: string;
@@ -102,6 +103,8 @@ function SleepChart({ logs }: { logs: SleepLog[] }) {
 }
 
 export default function SommeilClient({ personId }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [logs, setLogs] = useState<SleepLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -187,7 +190,7 @@ export default function SommeilClient({ personId }: Props) {
       setLogs((prev) => prev.map((l) => l.id === editId ? { ...l, ...payload } : l));
     } else {
       const { data, error: err } = await supabase.from("sleep_logs").insert(payload).select().single();
-      if (err || !data) { setError(err?.message ?? "Erreur"); setSaving(false); return; }
+      if (err || !data) { setError(err?.message ?? t("Erreur", "Error")); setSaving(false); return; }
       setLogs((prev) => [data as SleepLog, ...prev]);
     }
     setSaving(false);
@@ -196,13 +199,13 @@ export default function SommeilClient({ personId }: Props) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Supprimer cette nuit ?")) return;
+    if (!confirm(t("Supprimer cette nuit ?", "Delete this night?"))) return;
     const supabase = createClient();
     await supabase.from("sleep_logs").delete().eq("id", id);
     setLogs((prev) => prev.filter((l) => l.id !== id));
   }
 
-  if (loading) return <div className="px-4 py-10 text-center text-gray-400 text-sm">Chargement…</div>;
+  if (loading) return <div className="px-4 py-10 text-center text-gray-400 text-sm">{t("Chargement…", "Loading…")}</div>;
 
   return (
     <div className="px-4 py-5 space-y-4">
@@ -244,7 +247,7 @@ export default function SommeilClient({ personId }: Props) {
         {logs.length === 0 && !showForm && (
           <div className="card text-center py-10 space-y-2 border-dashed border-2 border-indigo-100">
             <p className="text-5xl">😴</p>
-            <p className="font-semibold text-gray-800">Aucune nuit enregistrée</p>
+            <p className="font-semibold text-gray-800">{t("Aucune nuit enregistrée", "No nights recorded")}</p>
             <p className="text-xs text-gray-400 px-4">Suis ton sommeil chaque matin pour découvrir tes habitudes et améliorer ta récupération.</p>
             <button onClick={openAdd}
               className="inline-block bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl mt-2">
@@ -272,7 +275,7 @@ export default function SommeilClient({ personId }: Props) {
                     )}
                   </div>
                   <div className="flex gap-3 items-center flex-shrink-0">
-                    <button onClick={() => openEdit(log)} className="text-xs text-gray-400">Modifier</button>
+                    <button onClick={() => openEdit(log)} className="text-xs text-gray-400">{t("Modifier", "Edit")}</button>
                     <button onClick={() => handleDelete(log.id)} className="text-xs text-red-400">Suppr.</button>
                   </div>
                 </div>
@@ -357,9 +360,9 @@ export default function SommeilClient({ personId }: Props) {
           </div>
 
           <div className="flex gap-3">
-            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Annuler</button>
+            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">{t("Annuler", "Cancel")}</button>
             <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? "Enregistrement…" : editId ? "Mettre à jour" : "Enregistrer"}
+              {saving ? t("Enregistrement…", "Saving…") : editId ? t("Mettre à jour", "Update") : t("Enregistrer", "Save")}
             </button>
           </div>
         </form>

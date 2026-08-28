@@ -1,4 +1,4 @@
-export type Lang = "fr" | "en";
+﻿export type Lang = "fr" | "en";
 
 export const translations = {
   // Navigation
@@ -91,13 +91,27 @@ export const translations = {
   french: { fr: "Français", en: "French" },
   english: { fr: "Anglais", en: "English" },
 
-  // ABIBA
-  abibaSubtitle: { fr: "Assistante Santé IA · en ligne", en: "AI Health Assistant · online" },
-  abibaWelcome: { fr: "Je suis ABIBA, ton assistante santé personnelle. Je peux t'aider à comprendre tes examens, tes médicaments ou répondre à tes questions de santé.", en: "I am ABIBA, your personal health assistant. I can help you understand your exams, medications, or answer your health questions." },
-  abibaDisclaimer: { fr: "⚕️ Je suis un outil éducatif, pas un médecin. Consulte toujours un professionnel de santé.", en: "⚕️ I am an educational tool, not a doctor. Always consult a healthcare professional." },
-  abibaPlaceholder: { fr: "Pose ta question à ABIBA…", en: "Ask ABIBA a question…" },
-  abibaFooter: { fr: "ABIBA ne remplace pas un médecin · Urgences :", en: "ABIBA does not replace a doctor · Emergency:" },
+  // By'
+  By'Subtitle: { fr: "Assistante Santé IA · en ligne", en: "AI Health Assistant · online" },
+  By'Welcome: { fr: "Je suis By', ton assistante santé personnelle. Je peux t'aider à comprendre tes examens, tes médicaments ou répondre à tes questions de santé.", en: "I am By', your personal health assistant. I can help you understand your exams, medications, or answer your health questions." },
+  By'Disclaimer: { fr: "⚕️ Je suis un outil éducatif, pas un médecin. Consulte toujours un professionnel de santé.", en: "⚕️ I am an educational tool, not a doctor. Always consult a healthcare professional." },
+  By'Placeholder: { fr: "Pose ta question à By'…", en: "Ask By' a question…" },
+  By'Footer: { fr: "By' ne remplace pas un médecin · Urgences :", en: "By' does not replace a doctor · Emergency:" },
   suggestions: { fr: "Suggestions", en: "Suggestions" },
+
+  // Famille
+  uploadError: { fr: "Erreur upload", en: "Upload error" },
+  addFamilyMember: { fr: "+ Ajouter un membre de la famille", en: "+ Add a family member" },
+  editProfile: { fr: "Modifier le profil", en: "Edit profile" },
+  newMember: { fr: "Nouveau membre", en: "New member" },
+  deleteFamilyConfirm: { fr: "Supprimer ce profil ? Toutes ses données médicales seront effacées.", en: "Delete this profile? All medical data will be erased." },
+
+  // Résultats labo
+  enterResult: { fr: "+ Saisir un résultat", en: "+ Enter a result" },
+  addResult: { fr: "+ Ajouter un résultat", en: "+ Add a result" },
+
+  // Symptômes
+  none: { fr: "Aucune", en: "None" },
 } as const;
 
 export type TKey = keyof typeof translations;

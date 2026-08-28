@@ -16,7 +16,7 @@ export default async function FamillePage() {
 
   return (
     <div>
-      <PageHeader title="Famille" subtitle="GÃ©rer les profils" back />
+      <PageHeader title="Famille" subtitle="Gérer les profils" back />
       <FamilleClient userId={user.id} persons={persons} activePersonId={activePersonId} />
     </div>
   );

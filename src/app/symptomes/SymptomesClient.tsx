@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { SymptomLog, SymptomLogInsert } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 const MOODS = ["😞", "😕", "😐", "🙂", "😊"];
 const MOOD_LABELS = ["Très mauvaise", "Mauvaise", "Neutre", "Bonne", "Très bonne"];
@@ -96,6 +97,7 @@ function formatDate(d: string) {
 interface Props { personId: string; initialData: SymptomLog[] }
 
 export default function SymptomesClient({ personId, initialData }: Props) {
+  const { t } = useLang();
   const [items, setItems] = useState<SymptomLog[]>(initialData);
   const [date, setDate] = useState(today());
   const [pain, setPain] = useState(0);
@@ -209,7 +211,7 @@ export default function SymptomesClient({ personId, initialData }: Props) {
           <div className="card space-y-3">
             <div className="flex justify-between items-center">
               <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Douleur</p>
-              <span className="font-bold text-health-blue">{pain === 0 ? "Aucune" : `${pain}/10`}</span>
+              <span className="font-bold text-health-blue">{pain === 0 ? t("none") : `${pain}/10`}</span>
             </div>
             <PainDots value={pain} onChange={setPain} />
             <p className="text-xs text-gray-400">
@@ -267,10 +269,10 @@ export default function SymptomesClient({ personId, initialData }: Props) {
 
           <div className="flex gap-3">
             <button type="submit" disabled={saving} className="btn-primary flex-1">
-              {saving ? "Enregistrement…" : "✅ Enregistrer"}
+              {saving ? t("saving") : "✅ " + t("save")}
             </button>
             <button type="button" onClick={() => setMode("view")} className="flex-1 rounded-xl border-2 border-gray-200 py-3 text-sm font-medium text-gray-600 active:bg-gray-50">
-              Annuler
+              {t("cancel")}
             </button>
           </div>
         </form>
@@ -294,7 +296,7 @@ export default function SymptomesClient({ personId, initialData }: Props) {
               onClick={() => openCheckin(existingToday)}
               className="text-xs bg-white text-gray-600 border border-gray-200 rounded-xl px-3 py-1.5 font-medium"
             >
-              Modifier
+              {t("edit")}
             </button>
           </div>
           {(existingToday.pain_level ?? 0) > 0 && (

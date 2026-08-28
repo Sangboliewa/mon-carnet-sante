@@ -206,7 +206,7 @@ export default function AssistantClient({ personId, personName }: Props) {
                 <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
                 <div>
                   <p className="font-bold text-white text-base">Bonjour {personName} 👋</p>
-                  <p className="text-blue-200 text-xs">ABIBA — Assistante Santé IA</p>
+                  <p className="text-blue-200 text-xs">By' — Assistante Santé IA</p>
                 </div>
               </div>
               <p className="text-blue-100 text-sm leading-relaxed">
@@ -278,7 +278,7 @@ export default function AssistantClient({ personId, personName }: Props) {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKey}
             rows={1}
-            placeholder="Pose ta question à ABIBA…"
+            placeholder="Pose ta question à By'…"
             disabled={loading}
             className="flex-1 rounded-2xl border border-gray-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60 max-h-32 bg-gray-50"
             style={{ lineHeight: "1.4" }}
@@ -291,7 +291,7 @@ export default function AssistantClient({ personId, personName }: Props) {
           </button>
         </form>
         <p className="text-xs text-center text-gray-400 mt-2">
-          ABIBA ne remplace pas un médecin · Urgences : <span className="font-semibold text-red-500">185</span>
+          By' ne remplace pas un médecin · Urgences : <span className="font-semibold text-red-500">185</span>
         </p>
       </div>
     </div>

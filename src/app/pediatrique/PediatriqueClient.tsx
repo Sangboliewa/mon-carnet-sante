@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import type { GrowthRecord, GrowthRecordInsert } from "@/lib/supabase/types";
 
 // ─── Calendrier PEV (Programme Élargi de Vaccination) ───────────────────────
@@ -45,6 +46,8 @@ function fmt(d: string) {
 interface Props { personId: string; ageMonths: number; initialData: GrowthRecord[] }
 
 export default function PediatriqueClient({ personId, ageMonths, initialData }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [records, setRecords] = useState<GrowthRecord[]>(initialData);
   const [showForm, setShowForm] = useState(false);
   const [date, setDate] = useState(today());
@@ -151,7 +154,7 @@ export default function PediatriqueClient({ personId, ageMonths, initialData }: 
           )}
 
           <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
-            {showForm ? "Annuler" : "+ Ajouter une mesure"}
+            {showForm ? t("Annuler", "Cancel") : t("+ Ajouter une mesure", "+ Add a measurement")}
           </button>
 
           {showForm && (
@@ -179,7 +182,7 @@ export default function PediatriqueClient({ personId, ageMonths, initialData }: 
                 <textarea className="input-field resize-none" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
               <button type="submit" disabled={saving} className="btn-primary">
-                {saving ? "Enregistrement…" : "Enregistrer"}
+                {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
               </button>
             </form>
           )}
@@ -187,13 +190,13 @@ export default function PediatriqueClient({ personId, ageMonths, initialData }: 
           {records.length === 0 && !showForm && (
             <div className="card text-center py-10 space-y-3">
               <div className="text-5xl">📏</div>
-              <p className="font-semibold text-gray-800">Aucune mesure enregistrée</p>
+              <p className="font-semibold text-gray-800">{t("Aucune mesure enregistrée", "No measurements recorded")}</p>
               <p className="text-sm text-gray-500 leading-relaxed px-4">
                 Suis la croissance de l&apos;enfant en enregistrant régulièrement taille, poids et périmètre crânien.
               </p>
               <button onClick={() => setShowForm(true)}
                 className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-                + Ajouter une mesure
+                {t("+ Ajouter une mesure", "+ Add a measurement")}
               </button>
             </div>
           )}
@@ -219,7 +222,7 @@ export default function PediatriqueClient({ personId, ageMonths, initialData }: 
                 </div>
                 {r.notes && <p className="text-xs text-gray-400 italic mt-0.5">{r.notes}</p>}
                 <button onClick={() => handleDelete(r.id)} disabled={deletingId === r.id} className="text-red-400 text-xs mt-1">
-                  {deletingId === r.id ? "Suppression…" : "Supprimer"}
+                  {deletingId === r.id ? t("Suppression…", "Deleting…") : t("Supprimer", "Delete")}
                 </button>
               </div>
             </div>

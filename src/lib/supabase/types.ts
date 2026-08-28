@@ -19,6 +19,7 @@ export interface PersonRow {
   relation: string | null;
   nickname: string | null;
   avatar_emoji: string | null;
+  avatar_photo_url: string | null;
   created_at: string;
   updated_at: string;
 }

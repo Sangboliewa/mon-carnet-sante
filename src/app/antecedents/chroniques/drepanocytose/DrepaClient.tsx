@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface DrepaRecord {
   id: string;
@@ -19,22 +20,36 @@ interface DrepaRecord {
 
 interface Props { personId: string; initial: DrepaRecord[]; }
 
-const TYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS_FR: Record<string, string> = {
   crisis: "Crise vaso-occlusive",
   transfusion: "Transfusion",
   hospitalization: "Hospitalisation",
   consultation: "Consultation",
   lab_result: "Résultat labo",
 };
+const TYPE_LABELS_EN: Record<string, string> = {
+  crisis: "Vaso-occlusive crisis",
+  transfusion: "Transfusion",
+  hospitalization: "Hospitalization",
+  consultation: "Consultation",
+  lab_result: "Lab result",
+};
 
 const TYPE_ICONS: Record<string, string> = {
   crisis: "⚡", transfusion: "🩸", hospitalization: "🏥", consultation: "👨‍⚕️", lab_result: "🔬",
 };
 
-const PAIN_LOCATIONS = ["Thorax", "Articulations", "Abdomen", "Tête", "Dos", "Membres"];
-const TRIGGERS = ["Froid", "Déshydratation", "Infection", "Stress", "Altitude", "Effort physique"];
+const PAIN_LOCATIONS_FR = ["Thorax", "Articulations", "Abdomen", "Tête", "Dos", "Membres"];
+const PAIN_LOCATIONS_EN = ["Chest", "Joints", "Abdomen", "Head", "Back", "Limbs"];
+const TRIGGERS_FR = ["Froid", "Déshydratation", "Infection", "Stress", "Altitude", "Effort physique"];
+const TRIGGERS_EN = ["Cold", "Dehydration", "Infection", "Stress", "Altitude", "Physical exertion"];
 
 export default function DrepaClient({ personId, initial }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
+  const TYPE_LABELS = lang === "en" ? TYPE_LABELS_EN : TYPE_LABELS_FR;
+  const PAIN_LOCATIONS = lang === "en" ? PAIN_LOCATIONS_EN : PAIN_LOCATIONS_FR;
+  const TRIGGERS = lang === "en" ? TRIGGERS_EN : TRIGGERS_FR;
   const [records, setRecords] = useState(initial);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -98,15 +113,15 @@ export default function DrepaClient({ personId, initial }: Props) {
       <div className="grid grid-cols-4 gap-2">
         <div className="bg-white rounded-2xl border p-2.5 text-center">
           <p className="text-xl font-bold text-purple-600">{crises.length}</p>
-          <p className="text-xs text-gray-500">Crises</p>
+          <p className="text-xs text-gray-500">{t("Crises", "Crises")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-2.5 text-center">
           <p className="text-xl font-bold text-red-600">{transfusions.length}</p>
-          <p className="text-xs text-gray-500">Transfu.</p>
+          <p className="text-xs text-gray-500">{t("Transfu.", "Transf.")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-2.5 text-center">
           <p className="text-xl font-bold text-orange-600">{hospi.length}</p>
-          <p className="text-xs text-gray-500">Hospit.</p>
+          <p className="text-xs text-gray-500">{t("Hospit.", "Hospit.")}</p>
         </div>
         <div className="bg-white rounded-2xl border p-2.5 text-center">
           <p className={`text-xl font-bold ${lastHb && lastHb < 8 ? "text-red-600" : "text-green-600"}`}>
@@ -118,27 +133,27 @@ export default function DrepaClient({ personId, initial }: Props) {
 
       {lastHb && lastHb < 8 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-          <p className="text-sm text-red-700 font-medium">⚠️ Hémoglobine basse : {lastHb} g/dL (norme: 12–17 g/dL)</p>
+          <p className="text-sm text-red-700 font-medium">⚠️ {t("Hémoglobine basse", "Low hemoglobin")} : {lastHb} g/dL ({t("norme", "normal")}: 12–17 g/dL)</p>
         </div>
       )}
 
       <button onClick={() => setShowForm(!showForm)}
         className="w-full py-3 rounded-2xl bg-purple-600 text-white font-semibold text-sm active:opacity-80">
-        + Nouvel événement
+        + {t("Nouvel événement", "New event")}
       </button>
 
       {showForm && (
         <div className="bg-white rounded-2xl border p-4 space-y-3">
-          <p className="font-semibold text-gray-900">Nouvel événement</p>
+          <p className="font-semibold text-gray-900">{t("Nouvel événement", "New event")}</p>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Date & heure</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Date & heure", "Date & time")}</label>
             <input type="datetime-local" value={form.recorded_at}
               onChange={e => setForm({ ...form, recorded_at: e.target.value })} className="input mt-1" />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Type d'événement</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Type d'événement", "Event type")}</label>
             <div className="grid grid-cols-2 gap-2 mt-1">
               {Object.entries(TYPE_LABELS).map(([v, l]) => (
                 <button key={v} onClick={() => setForm({ ...form, type: v })}
@@ -152,14 +167,14 @@ export default function DrepaClient({ personId, initial }: Props) {
           {form.type === "crisis" && (
             <>
               <div>
-                <label className="text-xs text-gray-500 font-medium">Intensité douleur (0–10)</label>
+                <label className="text-xs text-gray-500 font-medium">{t("Intensité douleur (0–10)", "Pain intensity (0–10)")}</label>
                 <input type="range" min="0" max="10" value={form.pain_level || 0}
                   onChange={e => setForm({ ...form, pain_level: e.target.value })}
                   className="w-full mt-1 accent-purple-600" />
                 <p className="text-center text-lg font-bold text-purple-600">{form.pain_level || 0}/10</p>
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-medium">Localisation douleur</label>
+                <label className="text-xs text-gray-500 font-medium">{t("Localisation douleur", "Pain location")}</label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {PAIN_LOCATIONS.map(loc => (
                     <button key={loc} onClick={() => setForm({ ...form, pain_locations: toggleArr(form.pain_locations, loc) })}
@@ -170,7 +185,7 @@ export default function DrepaClient({ personId, initial }: Props) {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-medium">Facteurs déclenchants</label>
+                <label className="text-xs text-gray-500 font-medium">{t("Facteurs déclenchants", "Trigger factors")}</label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {TRIGGERS.map(t => (
                     <button key={t} onClick={() => setForm({ ...form, trigger_factors: toggleArr(form.trigger_factors, t) })}
@@ -181,8 +196,8 @@ export default function DrepaClient({ personId, initial }: Props) {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-500 font-medium">Durée (jours)</label>
-                <input type="number" placeholder="ex: 3" value={form.duration_days}
+                <label className="text-xs text-gray-500 font-medium">{t("Durée (jours)", "Duration (days)")}</label>
+                <input type="number" placeholder={t("ex: 3", "e.g. 3")} value={form.duration_days}
                   onChange={e => setForm({ ...form, duration_days: e.target.value })} className="input mt-1" />
               </div>
             </>
@@ -190,15 +205,15 @@ export default function DrepaClient({ personId, initial }: Props) {
 
           {form.type === "transfusion" && (
             <div>
-              <label className="text-xs text-gray-500 font-medium">Volume transfusé (mL)</label>
-              <input type="number" placeholder="ex: 300" value={form.transfusion_volume}
+              <label className="text-xs text-gray-500 font-medium">{t("Volume transfusé (mL)", "Transfusion volume (mL)")}</label>
+              <input type="number" placeholder={t("ex: 300", "e.g. 300")} value={form.transfusion_volume}
                 onChange={e => setForm({ ...form, transfusion_volume: e.target.value })} className="input mt-1" />
             </div>
           )}
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Hémoglobine (g/dL)</label>
-            <input type="number" step="0.1" placeholder="ex: 9.5" value={form.hemoglobin}
+            <label className="text-xs text-gray-500 font-medium">{t("Hémoglobine (g/dL)", "Hemoglobin (g/dL)")}</label>
+            <input type="number" step="0.1" placeholder={t("ex: 9.5", "e.g. 9.5")} value={form.hemoglobin}
               onChange={e => setForm({ ...form, hemoglobin: e.target.value })} className="input mt-1" />
           </div>
 
@@ -206,26 +221,26 @@ export default function DrepaClient({ personId, initial }: Props) {
             <input type="checkbox" checked={form.hospitalized}
               onChange={e => setForm({ ...form, hospitalized: e.target.checked })}
               className="w-4 h-4 accent-purple-600" />
-            <span className="text-sm text-gray-700">Hospitalisation</span>
+            <span className="text-sm text-gray-700">{t("Hospitalisation", "Hospitalization")}</span>
           </label>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Traitement reçu</label>
-            <input type="text" placeholder="ex: Morphine, Hydroxyurée..." value={form.treatment_given}
+            <label className="text-xs text-gray-500 font-medium">{t("Traitement reçu", "Treatment given")}</label>
+            <input type="text" placeholder={t("ex: Morphine, Hydroxyurée...", "e.g. Morphine, Hydroxyurea...")} value={form.treatment_given}
               onChange={e => setForm({ ...form, treatment_given: e.target.value })} className="input mt-1" />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 font-medium">Notes</label>
+            <label className="text-xs text-gray-500 font-medium">{t("Notes", "Notes")}</label>
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
               rows={2} className="input mt-1 resize-none" />
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">Annuler</button>
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border text-gray-600 text-sm">{t("Annuler", "Cancel")}</button>
             <button onClick={save} disabled={saving}
               className="flex-1 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-semibold disabled:opacity-50">
-              {saving ? "Enregistrement…" : "Enregistrer"}
+              {saving ? t("Enregistrement…", "Saving…") : t("Enregistrer", "Save")}
             </button>
           </div>
         </div>
@@ -236,13 +251,13 @@ export default function DrepaClient({ personId, initial }: Props) {
         {records.length === 0 && (
           <div className="card text-center py-10 space-y-3">
             <div className="text-5xl">⚡</div>
-            <p className="font-semibold text-gray-800">Aucun événement enregistré</p>
+            <p className="font-semibold text-gray-800">{t("Aucun événement enregistré", "No events recorded")}</p>
             <p className="text-sm text-gray-500 leading-relaxed px-4">
-              Consigne tes crises, transfusions et consultations pour un suivi complet de ta drépanocytose.
+              {t("Consigne tes crises, transfusions et consultations pour un suivi complet de ta drépanocytose.", "Log your crises, transfusions and consultations for complete sickle cell disease tracking.")}
             </p>
             <button onClick={() => setShowForm(true)}
               className="inline-block bg-purple-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-              + Nouvel événement
+              + {t("Nouvel événement", "New event")}
             </button>
           </div>
         )}
@@ -267,7 +282,7 @@ export default function DrepaClient({ personId, initial }: Props) {
                 <p className="font-semibold text-gray-900 mt-0.5">{TYPE_LABELS[r.type]}</p>
               </div>
               <div className="flex items-center gap-2">
-                {r.hospitalized && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Hospitalisé</span>}
+                {r.hospitalized && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{t("Hospitalisé", "Hospitalized")}</span>}
                 <button onClick={() => remove(r.id)} className="text-gray-300 text-lg">×</button>
               </div>
             </div>
@@ -275,7 +290,7 @@ export default function DrepaClient({ personId, initial }: Props) {
             <div className="flex flex-wrap gap-3 mt-2">
               {r.pain_level !== null && (
                 <div>
-                  <p className="text-xs text-gray-500">Douleur</p>
+                  <p className="text-xs text-gray-500">{t("Douleur", "Pain")}</p>
                   <p className={`text-lg font-bold ${r.pain_level >= 7 ? "text-red-600" : r.pain_level >= 4 ? "text-amber-600" : "text-green-600"}`}>
                     {r.pain_level}/10
                   </p>
@@ -283,19 +298,19 @@ export default function DrepaClient({ personId, initial }: Props) {
               )}
               {r.hemoglobin && (
                 <div>
-                  <p className="text-xs text-gray-500">Hémoglobine</p>
+                  <p className="text-xs text-gray-500">{t("Hémoglobine", "Hemoglobin")}</p>
                   <p className={`text-lg font-bold ${r.hemoglobin < 8 ? "text-red-600" : "text-green-600"}`}>{r.hemoglobin} <span className="text-xs font-normal">g/dL</span></p>
                 </div>
               )}
               {r.transfusion_volume && (
                 <div>
-                  <p className="text-xs text-gray-500">Volume</p>
+                  <p className="text-xs text-gray-500">{t("Volume", "Volume")}</p>
                   <p className="text-lg font-bold">{r.transfusion_volume} <span className="text-xs font-normal">mL</span></p>
                 </div>
               )}
               {r.duration_days && (
                 <div>
-                  <p className="text-xs text-gray-500">Durée</p>
+                  <p className="text-xs text-gray-500">{t("Durée", "Duration")}</p>
                   <p className="text-lg font-bold">{r.duration_days}j</p>
                 </div>
               )}

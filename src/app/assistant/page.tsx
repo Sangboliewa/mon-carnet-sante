@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -22,7 +22,7 @@ export default async function AssistantPage() {
         <Link href="/dashboard" className="text-white/80 text-2xl leading-none">‹</Link>
         <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-white font-bold">A</div>
         <div>
-          <p className="text-white font-semibold leading-tight">ABIBA</p>
+          <p className="text-white font-semibold leading-tight">By'</p>
           <p className="text-blue-200 text-xs">Assistante Santé IA · en ligne</p>
         </div>
       </div>

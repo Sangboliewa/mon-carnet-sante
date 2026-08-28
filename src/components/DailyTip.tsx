@@ -1,11 +1,17 @@
 "use client";
 import { getTodaysTip, TIP_COLORS } from "@/lib/dailyTips";
 import { useState } from "react";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 export default function DailyTip() {
+  const { lang } = useLang();
   const tip = getTodaysTip();
   const colors = TIP_COLORS[tip.color] ?? TIP_COLORS.blue;
   const [expanded, setExpanded] = useState(false);
+  const tipLabel = lang === "en" ? "Daily tip" : "Conseil du jour";
+  const catLabel = lang === "en" ? tip.categoryLabelEn : tip.categoryLabel;
+  const title    = lang === "en" ? tip.titleEn : tip.title;
+  const body     = lang === "en" ? tip.bodyEn  : tip.body;
 
   return (
     <div className={`card ${colors.bg} ${colors.border} border cursor-pointer select-none`} onClick={() => setExpanded(v => !v)}>
@@ -14,12 +20,12 @@ export default function DailyTip() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${colors.tag}`}>
-              Conseil du jour · {tip.categoryLabel}
+              {tipLabel} · {catLabel}
             </span>
           </div>
-          <p className={`font-semibold text-sm ${colors.text}`}>{tip.title}</p>
+          <p className={`font-semibold text-sm ${colors.text}`}>{title}</p>
           {expanded && (
-            <p className="text-sm text-gray-700 mt-1.5 leading-relaxed">{tip.body}</p>
+            <p className="text-sm text-gray-700 mt-1.5 leading-relaxed">{body}</p>
           )}
         </div>
         <span className={`text-gray-400 text-xs mt-1 shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>▼</span>

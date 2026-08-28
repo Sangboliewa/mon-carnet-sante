@@ -1,7 +1,9 @@
-﻿"use client";
+"use client";
 
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 type Platform = "google_meet" | "zoom" | "whatsapp" | "teams" | "autre";
 type Status = "planifie" | "termine" | "annule";
@@ -19,6 +21,11 @@ interface Teleconsultation {
   notes: string | null;
   prescription_notes: string | null;
   follow_up_date: string | null;
+}
+
+interface CompteRendu {
+  notes: string;
+  diagnostic: string;
 }
 
 const PLATFORM_ICONS: Record<Platform, string> = { google_meet: "📹", zoom: "💻", whatsapp: "📱", teams: "👥", autre: "🩺" };
@@ -50,6 +57,9 @@ const emptyForm = {
 
 export default function TeleconsultationClient() {
   const supabase = createClient();
+  const router = useRouter();
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [list, setList] = useState<Teleconsultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -58,6 +68,12 @@ export default function TeleconsultationClient() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Compte-rendu state: Map of teleconsult id → draft form values
+  const [compteRenduOpen, setCompteRenduOpen] = useState<string | null>(null);
+  const [compteRenduDraft, setCompteRenduDraft] = useState<CompteRendu>({ notes: "", diagnostic: "" });
+  const [savingCR, setSavingCR] = useState(false);
+  const [crError, setCrError] = useState<string | null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -129,6 +145,42 @@ export default function TeleconsultationClient() {
     load();
   }
 
+  function openCompteRendu(tc: Teleconsultation) {
+    setCompteRenduOpen(tc.id);
+    setCompteRenduDraft({
+      notes: tc.notes ?? "",
+      diagnostic: tc.prescription_notes ?? "",
+    });
+    setCrError(null);
+  }
+
+  function closeCompteRendu() {
+    setCompteRenduOpen(null);
+    setCrError(null);
+  }
+
+  async function saveCompteRendu(tc: Teleconsultation) {
+    setSavingCR(true); setCrError(null);
+    const { error: err } = await supabase
+      .from("teleconsultations")
+      .update({
+        notes: compteRenduDraft.notes || null,
+        prescription_notes: compteRenduDraft.diagnostic || null,
+      })
+      .eq("id", tc.id);
+    setSavingCR(false);
+    if (err) { setCrError(err.message); return; }
+    setCompteRenduOpen(null);
+    load();
+  }
+
+  function goToOrdonnance(doctorName: string, specialty: string | null) {
+    const params = new URLSearchParams();
+    if (doctorName) params.set("doctor", doctorName);
+    if (specialty) params.set("specialty", specialty);
+    router.push(`/prescriptions?${params.toString()}`);
+  }
+
   const upcoming = list.filter(t => t.status === "planifie").sort((a, b) => new Date(a.teleconsult_date).getTime() - new Date(b.teleconsult_date).getTime());
   const past = list.filter(t => t.status === "termine");
   const cancelled = list.filter(t => t.status === "annule");
@@ -143,7 +195,7 @@ export default function TeleconsultationClient() {
         <button onClick={openNew} className="btn-primary w-auto px-5 py-3 text-sm">+ Nouvelle</button>
       </div>
 
-      {loading && <div className="text-center py-16 text-gray-400">Chargement…</div>}
+      {loading && <div className="text-center py-16 text-gray-400">{t("Chargement…", "Loading…")}</div>}
 
       {!loading && (
         <>
@@ -187,8 +239,8 @@ export default function TeleconsultationClient() {
                             Marquer terminé
                           </button>
                           <div className="flex gap-2">
-                            <button onClick={() => openEdit(tc)} className="text-xs text-blue-600 hover:underline">Modifier</button>
-                            <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">Supprimer</button>
+                            <button onClick={() => openEdit(tc)} className="text-xs text-blue-600 hover:underline">{t("Modifier", "Edit")}</button>
+                            <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">{t("Supprimer", "Delete")}</button>
                           </div>
                         </div>
                       </div>
@@ -206,40 +258,121 @@ export default function TeleconsultationClient() {
               <h2 className="text-base font-bold text-green-700 mb-3">✅ Terminées ({past.length})</h2>
               <div className="space-y-2">
                 {past.map(tc => (
-                  <div key={tc.id} className="card flex items-start gap-3 border-l-4 border-l-green-400">
-                    <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0">
-                      {PLATFORM_ICONS[tc.platform]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3">
+                  <div key={tc.id} className="card border-l-4 border-l-green-400">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0">
+                        {PLATFORM_ICONS[tc.platform]}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-gray-900">{tc.doctor_name}</span>
-                          {tc.specialty && <span className="text-sm text-gray-500">— {tc.specialty}</span>}
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[tc.status]}`}>{STATUS_LABELS[tc.status]}</span>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-0.5">{fmt(tc.teleconsult_date)}</p>
-                        {tc.chief_complaint && <p className="text-xs text-gray-400 italic">{tc.chief_complaint}</p>}
-                        {(tc.notes || tc.prescription_notes || tc.follow_up_date) && (
-                          <button className="mt-1 text-xs text-blue-600 hover:underline"
-                            onClick={() => setExpandedId(expandedId === tc.id ? null : tc.id)}>
-                            {expandedId === tc.id ? "▲ Masquer" : "▼ Voir notes"}
-                          </button>
-                        )}
-                        {expandedId === tc.id && (
-                          <div className="mt-2 text-sm bg-gray-50 rounded-lg p-3 space-y-2">
-                            {tc.notes && <div><span className="font-medium text-gray-700">Notes :</span><p className="text-gray-600 whitespace-pre-line">{tc.notes}</p></div>}
-                            {tc.prescription_notes && <div><span className="font-medium text-gray-700">Ordonnance :</span><p className="text-gray-600 whitespace-pre-line">{tc.prescription_notes}</p></div>}
-                            {tc.follow_up_date && <p><span className="font-medium text-gray-700">Suivi :</span> {fmtDate(tc.follow_up_date)}</p>}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-gray-900">{tc.doctor_name}</span>
+                              {tc.specialty && <span className="text-sm text-gray-500">— {tc.specialty}</span>}
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[tc.status]}`}>{STATUS_LABELS[tc.status]}</span>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-0.5">{fmt(tc.teleconsult_date)}</p>
+                            {tc.chief_complaint && <p className="text-xs text-gray-400 italic">{tc.chief_complaint}</p>}
+
+                            {/* Summary of compte-rendu if exists */}
+                            {(tc.notes || tc.prescription_notes) && (
+                              <div className="mt-1.5 flex flex-wrap gap-2">
+                                {tc.notes && (
+                                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-100">
+                                    📝 Notes renseignées
+                                  </span>
+                                )}
+                                {tc.prescription_notes && (
+                                  <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-100">
+                                    🔬 Diagnostic renseigné
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {(tc.notes || tc.prescription_notes || tc.follow_up_date) && (
+                              <button className="mt-1 text-xs text-blue-600 hover:underline"
+                                onClick={() => setExpandedId(expandedId === tc.id ? null : tc.id)}>
+                                {expandedId === tc.id ? "▲ Masquer" : "▼ Voir notes"}
+                              </button>
+                            )}
+                            {expandedId === tc.id && (
+                              <div className="mt-2 text-sm bg-gray-50 rounded-lg p-3 space-y-2">
+                                {tc.notes && <div><span className="font-medium text-gray-700">Notes médecin :</span><p className="text-gray-600 whitespace-pre-line">{tc.notes}</p></div>}
+                                {tc.prescription_notes && <div><span className="font-medium text-gray-700">Diagnostic :</span><p className="text-gray-600 whitespace-pre-line">{tc.prescription_notes}</p></div>}
+                                {tc.follow_up_date && <p><span className="font-medium text-gray-700">Suivi :</span> {fmtDate(tc.follow_up_date)}</p>}
+                              </div>
+                            )}
                           </div>
+                          <div className="flex flex-col gap-1.5 items-end shrink-0">
+                            <button
+                              onClick={() => compteRenduOpen === tc.id ? closeCompteRendu() : openCompteRendu(tc)}
+                              className="text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg hover:bg-indigo-100 transition-colors"
+                            >
+                              📋 Compte-rendu
+                            </button>
+                            <div className="flex gap-2">
+                              <button onClick={() => openEdit(tc)} className="text-xs text-blue-600 hover:underline">{t("Modifier", "Edit")}</button>
+                              <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">{t("Supprimer", "Delete")}</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Inline Compte-rendu panel */}
+                    {compteRenduOpen === tc.id && (
+                      <div className="mt-4 border-t border-gray-100 pt-4 space-y-3">
+                        <h3 className="text-sm font-bold text-gray-800">📋 Compte-rendu de consultation</h3>
+
+                        {crError && (
+                          <div className="bg-red-50 text-red-700 text-xs rounded-lg px-3 py-2">{crError}</div>
                         )}
+
+                        <div>
+                          <label className="text-xs font-medium text-gray-600 mb-1 block">Notes médecin</label>
+                          <textarea
+                            className="input-field min-h-[80px] text-sm"
+                            placeholder="Observations, symptômes, résumé de la consultation…"
+                            value={compteRenduDraft.notes}
+                            onChange={e => setCompteRenduDraft(d => ({ ...d, notes: e.target.value }))}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-medium text-gray-600 mb-1 block">Diagnostic</label>
+                          <input
+                            type="text"
+                            className="input-field text-sm"
+                            placeholder="Ex : Rhinopharyngite aiguë, Hypertension…"
+                            value={compteRenduDraft.diagnostic}
+                            onChange={e => setCompteRenduDraft(d => ({ ...d, diagnostic: e.target.value }))}
+                          />
+                        </div>
+
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => saveCompteRendu(tc)}
+                            disabled={savingCR}
+                            className="text-sm font-semibold bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                          >
+                            {savingCR ? t("Enregistrement…", "Saving…") : `💾 ${t("Enregistrer", "Save")}`}
+                          </button>
+                          <button
+                            onClick={() => goToOrdonnance(tc.doctor_name, tc.specialty)}
+                            className="text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-colors"
+                          >
+                            💊 Créer une ordonnance
+                          </button>
+                          <button
+                            onClick={closeCompteRendu}
+                            className="text-sm text-gray-500 border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors"
+                          >
+                            {t("Annuler", "Cancel")}
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button onClick={() => openEdit(tc)} className="text-xs text-blue-600 hover:underline">Modifier</button>
-                        <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">Supprimer</button>
-                      </div>
-                    </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -264,7 +397,7 @@ export default function TeleconsultationClient() {
                         </div>
                         <p className="text-sm text-gray-400">{fmt(tc.teleconsult_date)}</p>
                       </div>
-                      <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">Supprimer</button>
+                      <button onClick={() => handleDelete(tc.id)} className="text-xs text-red-500 hover:underline">{t("Supprimer", "Delete")}</button>
                     </div>
                   </div>
                 ))}
@@ -293,7 +426,7 @@ export default function TeleconsultationClient() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-5">{editingId ? "Modifier" : "Nouvelle téléconsultation"}</h2>
+              <h2 className="text-xl font-bold mb-5">{editingId ? t("Modifier", "Edit") : t("Nouvelle téléconsultation", "New teleconsultation")}</h2>
               {error && <div className="mb-4 bg-red-50 text-red-700 rounded-xl px-4 py-3 text-sm">{error}</div>}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -365,9 +498,9 @@ export default function TeleconsultationClient() {
                     value={form.follow_up_date} onChange={handleChange} />
                 </div>
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setShowModal(false)} className="btn-secondary" disabled={saving}>Annuler</button>
+                  <button type="button" onClick={() => setShowModal(false)} className="btn-secondary" disabled={saving}>{t("Annuler", "Cancel")}</button>
                   <button type="submit" className="btn-primary" disabled={saving}>
-                    {saving ? "Enregistrement…" : editingId ? "Mettre à jour" : "Créer"}
+                    {saving ? t("Enregistrement…", "Saving…") : editingId ? t("Mettre à jour", "Update") : t("Créer", "Create")}
                   </button>
                 </div>
               </form>

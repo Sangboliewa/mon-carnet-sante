@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { PersonRow, VitalMeasurement } from "@/lib/supabase/types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface LabResult {
   test_name: string;
@@ -50,13 +51,14 @@ function getStatus(value: number, cfg: typeof METRIC_CONFIG[MetricKey]): "normal
 
 // ─── SVG Line Chart ───────────────────────────────────────────────────────────
 
-function LineChart({ data, color, normalMin, normalMax, dangerMax, unit }: {
+function LineChart({ data, color, normalMin, normalMax, dangerMax, unit, t }: {
   data: { x: string; y: number; y2?: number }[];
   color: string;
   normalMin?: number | null;
   normalMax?: number | null;
   dangerMax?: number | null;
   unit: string;
+  t: (fr: string, en: string) => string;
 }) {
   const W = 320, H = 160, PL = 38, PR = 8, PT = 8, PB = 28;
   const CW = W - PL - PR, CH = H - PT - PB;
@@ -64,7 +66,7 @@ function LineChart({ data, color, normalMin, normalMax, dangerMax, unit }: {
   if (data.length < 2) {
     return (
       <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
-        Pas assez de données (min. 2 mesures)
+        {t("Pas assez de données (min. 2 mesures)", "Not enough data (min. 2 readings)")}
       </div>
     );
   }
@@ -142,7 +144,7 @@ function LineChart({ data, color, normalMin, normalMax, dangerMax, unit }: {
 
 // ─── Score santé ──────────────────────────────────────────────────────────────
 
-function HealthScore({ measurements, labResults }: { measurements: VitalMeasurement[]; labResults: LabResult[] }) {
+function HealthScore({ measurements, labResults, t }: { measurements: VitalMeasurement[]; labResults: LabResult[]; t: (fr: string, en: string) => string }) {
   let score = 100;
   const alerts: string[] = [];
 
@@ -154,21 +156,21 @@ function HealthScore({ measurements, labResults }: { measurements: VitalMeasurem
     const cfg = METRIC_CONFIG[type];
     const val = type === "blood_pressure" ? (latest.value_secondary ?? latest.value_primary) : latest.value_primary;
     const status = getStatus(val, cfg);
-    if (status === "danger")  { score -= 20; alerts.push(`${cfg.icon} ${cfg.label} en zone danger`); }
-    else if (status === "warning") { score -= 8; alerts.push(`${cfg.icon} ${cfg.label} hors norme`); }
+    if (status === "danger")  { score -= 20; alerts.push(`${cfg.icon} ${cfg.label} ${t("en zone danger", "in danger zone")}`); }
+    else if (status === "warning") { score -= 8; alerts.push(`${cfg.icon} ${cfg.label} ${t("hors norme", "out of range")}`); }
   }
   for (const lab of labResults.slice(0, 5)) {
-    if (lab.ref_max && lab.value > lab.ref_max * 1.2) { score -= 5; alerts.push(`🔬 ${lab.test_name} élevé`); }
-    if (lab.ref_min && lab.value < lab.ref_min * 0.8) { score -= 5; alerts.push(`🔬 ${lab.test_name} bas`); }
+    if (lab.ref_max && lab.value > lab.ref_max * 1.2) { score -= 5; alerts.push(`🔬 ${lab.test_name} ${t("élevé", "high")}`); }
+    if (lab.ref_min && lab.value < lab.ref_min * 0.8) { score -= 5; alerts.push(`🔬 ${lab.test_name} ${t("bas", "low")}`); }
   }
   score = Math.max(0, Math.min(100, score));
   const color = score >= 80 ? "#22c55e" : score >= 60 ? "#f59e0b" : "#ef4444";
-  const label = score >= 80 ? "Très bon" : score >= 60 ? "À surveiller" : "Attention requise";
+  const label = score >= 80 ? t("Très bon", "Very good") : score >= 60 ? t("À surveiller", "To monitor") : t("Attention requise", "Attention needed");
   const circ = 2 * Math.PI * 15.9;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-4">
-      <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">Score Santé Global</p>
+      <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">{t("Score Santé Global", "Overall Health Score")}</p>
       <div className="flex items-center gap-4">
         <div className="relative w-20 h-20 shrink-0">
           <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
@@ -182,7 +184,7 @@ function HealthScore({ measurements, labResults }: { measurements: VitalMeasurem
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold" style={{ color }}>{label}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{measurements.length} mesures enregistrées</p>
+          <p className="text-xs text-gray-500 mt-0.5">{measurements.length} {t("mesures enregistrées", "readings recorded")}</p>
           {alerts.length > 0 && (
             <div className="mt-2 space-y-1">
               {alerts.slice(0, 3).map((a, i) => (
@@ -191,7 +193,7 @@ function HealthScore({ measurements, labResults }: { measurements: VitalMeasurem
             </div>
           )}
           {alerts.length === 0 && measurements.length > 0 && (
-            <p className="text-xs text-green-600 bg-green-50 rounded-lg px-2 py-0.5 mt-1">✓ Toutes les mesures dans la norme</p>
+            <p className="text-xs text-green-600 bg-green-50 rounded-lg px-2 py-0.5 mt-1">{t("✓ Toutes les mesures dans la norme", "✓ All readings within normal range")}</p>
           )}
         </div>
       </div>
@@ -239,6 +241,8 @@ function MetricCard({ type, measurements, onClick, active }: {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SanteDashboardClient({ person, measurements, labResults, malaria }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [activeMetric, setActiveMetric] = useState<MetricKey>("blood_glucose");
   const metrics: MetricKey[] = ["blood_glucose", "blood_pressure", "heart_rate", "weight", "temperature", "oxygen_saturation"];
 
@@ -272,7 +276,7 @@ export default function SanteDashboardClient({ person, measurements, labResults,
     <div className="px-4 py-4 space-y-4 pb-8">
       {/* Score + IMC */}
       <div className={imc !== null ? "grid grid-cols-2 gap-3" : ""}>
-        <HealthScore measurements={measurements} labResults={labResults} />
+        <HealthScore measurements={measurements} labResults={labResults} t={t} />
         {imc !== null && (
           <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col justify-center">
             <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">IMC</p>
@@ -280,7 +284,7 @@ export default function SanteDashboardClient({ person, measurements, labResults,
               {imc.toFixed(1)}
             </p>
             <p className={`text-xs mt-0.5 font-medium ${imc < 18.5 ? "text-blue-500" : imc < 25 ? "text-green-500" : imc < 30 ? "text-amber-500" : "text-red-500"}`}>
-              {imc < 18.5 ? "Sous-poids" : imc < 25 ? "Normal ✓" : imc < 30 ? "Surpoids" : "Obésité"}
+              {imc < 18.5 ? t("Sous-poids", "Underweight") : imc < 25 ? t("Normal ✓", "Normal ✓") : imc < 30 ? t("Surpoids", "Overweight") : t("Obésité", "Obese")}
             </p>
             <p className="text-xs text-gray-400 mt-1">{person.height_cm} cm</p>
           </div>
@@ -290,21 +294,21 @@ export default function SanteDashboardClient({ person, measurements, labResults,
       {/* Paludisme recap */}
       {malaria.length > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4">
-          <p className="text-xs text-orange-700 uppercase tracking-wide font-semibold mb-2">🦟 Historique Paludisme</p>
+          <p className="text-xs text-orange-700 uppercase tracking-wide font-semibold mb-2">{t("🦟 Historique Paludisme", "🦟 Malaria History")}</p>
           <div className="flex gap-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-orange-700">{malaria.length}</p>
-              <p className="text-xs text-orange-600">Épisodes</p>
+              <p className="text-xs text-orange-600">{t("Épisodes", "Episodes")}</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-red-700">
                 {malaria.filter(m => m.severity === "grave" || m.severity === "cerebral").length}
               </p>
-              <p className="text-xs text-red-600">Graves</p>
+              <p className="text-xs text-red-600">{t("Graves", "Severe")}</p>
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-700">{malaria[0].episode_date}</p>
-              <p className="text-xs text-gray-500">Dernier épisode</p>
+              <p className="text-xs text-gray-500">{t("Dernier épisode", "Latest episode")}</p>
             </div>
           </div>
         </div>
@@ -330,7 +334,7 @@ export default function SanteDashboardClient({ person, measurements, labResults,
         if (!insights.length) return null;
         return (
           <div className="bg-white rounded-2xl shadow-sm p-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">Interprétation des dernières mesures</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">{t("Interprétation des dernières mesures", "Latest readings interpretation")}</p>
             <div className="space-y-2">
               {insights.map((ins, i) => (
                 <div key={i} className="flex items-center justify-between">
@@ -346,7 +350,7 @@ export default function SanteDashboardClient({ person, measurements, labResults,
                     ins.status === "warning" ? "bg-amber-100 text-amber-700" :
                     "bg-red-100 text-red-700"
                   }`}>
-                    {ins.status === "normal" ? "✓ Normal" : ins.status === "warning" ? "⚠ Surveiller" : "⛔ Danger"}
+                    {ins.status === "normal" ? t("✓ Normal", "✓ Normal") : ins.status === "warning" ? t("⚠ Surveiller", "⚠ Monitor") : t("⛔ Danger", "⛔ Danger")}
                   </span>
                 </div>
               ))}
@@ -357,7 +361,7 @@ export default function SanteDashboardClient({ person, measurements, labResults,
 
       {/* Metric selector */}
       <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">Mesures vitales — 90 jours</p>
+        <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">{t("Mesures vitales — 90 jours", "Vital signs — 90 days")}</p>
         <div className="grid grid-cols-3 gap-2">
           {metrics.map(type => (
             <MetricCard key={type} type={type} measurements={measurements}
@@ -393,12 +397,13 @@ export default function SanteDashboardClient({ person, measurements, labResults,
           normalMax={cfg.normalMax}
           dangerMax={cfg.dangerMax}
           unit={cfg.unit}
+          t={t}
         />
         {activeData.length > 0 && (
           <div className="flex gap-3 mt-2 text-xs text-gray-400">
-            <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-green-500" /> Norme min</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-amber-500" /> Norme max</span>
-            {cfg.dangerMax && <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-red-500" /> Danger</span>}
+            <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-green-500" /> {t("Norme min", "Min norm")}</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-amber-500" /> {t("Norme max", "Max norm")}</span>
+            {cfg.dangerMax && <span className="flex items-center gap-1"><span className="inline-block w-4 border-t border-dashed border-red-500" /> {t("Danger", "Danger")}</span>}
           </div>
         )}
       </div>
@@ -407,10 +412,10 @@ export default function SanteDashboardClient({ person, measurements, labResults,
       {labResults.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-3">
-            🔬 Derniers résultats labo
+            {t("🔬 Derniers résultats labo", "🔬 Latest lab results")}
             {labResults.filter(l => (l.ref_max && l.value > l.ref_max) || (l.ref_min && l.value < l.ref_min)).length > 0 && (
               <span className="ml-2 text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full text-xs">
-                {labResults.filter(l => (l.ref_max && l.value > l.ref_max) || (l.ref_min && l.value < l.ref_min)).length} hors norme
+                {labResults.filter(l => (l.ref_max && l.value > l.ref_max) || (l.ref_min && l.value < l.ref_min)).length} {t("hors norme", "out of range")}
               </span>
             )}
           </p>
@@ -429,7 +434,7 @@ export default function SanteDashboardClient({ person, measurements, labResults,
                       {l.value} {l.unit}
                     </span>
                     {(l.ref_min || l.ref_max) && (
-                      <p className="text-xs text-gray-400">Réf: {l.ref_min ?? "?"} – {l.ref_max ?? "?"}</p>
+                      <p className="text-xs text-gray-400">{t("Réf", "Ref")}: {l.ref_min ?? "?"} – {l.ref_max ?? "?"}</p>
                     )}
                   </div>
                 </div>
@@ -442,10 +447,10 @@ export default function SanteDashboardClient({ person, measurements, labResults,
       {/* CTAs */}
       <div className="grid grid-cols-2 gap-3">
         <Link href="/antecedents/mesures" className="block py-3 rounded-xl border border-blue-300 text-blue-700 text-sm font-medium text-center bg-blue-50">
-          + Mesure
+          {t("+ Mesure", "+ Reading")}
         </Link>
         <Link href="/resultats-labo" className="block py-3 rounded-xl border border-purple-300 text-purple-700 text-sm font-medium text-center bg-purple-50">
-          + Résultat labo
+          {t("+ Résultat labo", "+ Lab result")}
         </Link>
       </div>
     </div>

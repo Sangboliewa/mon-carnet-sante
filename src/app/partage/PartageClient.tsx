@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import type { SharedLink } from "@/lib/supabase/types";
 
 interface DocOption {
@@ -50,6 +51,8 @@ async function hashToken(token: string): Promise<string> {
 }
 
 export default function PartageClient({ personId, userId, documents, initialLinks }: Props) {
+  const { lang } = useLang();
+  const t = (fr: string, en: string) => lang === "en" ? en : fr;
   const [links, setLinks] = useState<SharedLink[]>(initialLinks);
   const [showForm, setShowForm] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState("");
@@ -114,7 +117,7 @@ export default function PartageClient({ personId, userId, documents, initialLink
       </div>
 
       <button onClick={() => { setShowForm((v) => !v); setCreatedUrl(null); }} className="btn-primary">
-        {showForm ? "Annuler" : "🔗 Créer un lien de partage"}
+        {showForm ? t("Annuler", "Cancel") : t("🔗 Créer un lien de partage", "🔗 Create a sharing link")}
       </button>
 
       {createdUrl && (
@@ -174,13 +177,13 @@ export default function PartageClient({ personId, userId, documents, initialLink
       {links.length === 0 && (
         <div className="card text-center py-10 space-y-3">
           <div className="text-5xl">🔗</div>
-          <p className="font-semibold text-gray-800">Aucun lien de partage actif</p>
+          <p className="font-semibold text-gray-800">{t("Aucun lien de partage actif", "No active sharing links")}</p>
           <p className="text-sm text-gray-500 leading-relaxed px-4">
             Génère un lien sécurisé pour partager un document médical avec un médecin ou un spécialiste.
           </p>
           <button onClick={() => setShowForm(true)}
             className="inline-block bg-health-blue text-white text-sm font-semibold px-6 py-2.5 rounded-xl mt-2">
-            🔗 Créer un lien de partage
+            {t("🔗 Créer un lien de partage", "🔗 Create a sharing link")}
           </button>
         </div>
       )}
