@@ -1,4 +1,4 @@
-﻿export type Lang = "fr" | "en";
+export type Lang = "fr" | "en";
 
 export const translations = {
   // Navigation
