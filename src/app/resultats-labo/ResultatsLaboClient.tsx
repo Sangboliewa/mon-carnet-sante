@@ -106,6 +106,34 @@ function RangeBar({ value, refMin, refMax, unit }: { value: number; refMin: numb
   );
 }
 
+// ─── Sparkline SVG ───────────────────────────────────────────────────────────
+function Sparkline({ points, refMin, refMax }: { points: { date: string; value: number }[]; refMin: number | null; refMax: number | null }) {
+  if (points.length < 2) return null;
+  const W = 200, H = 60, PAD = 6;
+  const vals = points.map(p => p.value);
+  const minV = Math.min(...vals, refMin ?? Infinity) * 0.9;
+  const maxV = Math.max(...vals, refMax ?? -Infinity) * 1.1 || minV + 1;
+  const span = maxV - minV || 1;
+  const x = (i: number) => PAD + (i / (points.length - 1)) * (W - PAD * 2);
+  const y = (v: number) => H - PAD - ((v - minV) / span) * (H - PAD * 2);
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(" ");
+  const lastVal = vals[vals.length - 1];
+  const lineColor = refMin != null && refMax != null
+    ? (lastVal < refMin ? "#3b82f6" : lastVal > refMax ? "#ef4444" : "#22c55e")
+    : "#6366f1";
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 60 }}>
+      {refMin != null && refMax != null && (
+        <rect x={0} y={y(refMax)} width={W} height={y(refMin) - y(refMax)} fill="#22c55e" fillOpacity={0.08} />
+      )}
+      <path d={pathD} fill="none" stroke={lineColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {points.map((p, i) => (
+        <circle key={i} cx={x(i)} cy={y(p.value)} r={3} fill={lineColor} />
+      ))}
+    </svg>
+  );
+}
+
 interface Props { personId: string; gender: string | null; initialData: LabResult[] }
 
 export default function ResultatsLaboClient({ personId, gender, initialData }: Props) {
@@ -124,6 +152,7 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"date" | "examen">("date");
 
   function pickRef(ref: LabRef | null) {
     setSelectedRef(ref);
@@ -181,6 +210,21 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
     }
     return [...map.entries()].sort(([a], [b]) => b.localeCompare(a));
   }, [filtered]);
+
+  const groupedByTest = useMemo(() => {
+    const map = new Map<string, LabResult[]>();
+    for (const item of items) {
+      if (!map.has(item.test_name)) map.set(item.test_name, []);
+      map.get(item.test_name)!.push(item);
+    }
+    return [...map.entries()]
+      .map(([name, results]) => ({
+        name,
+        results: results.sort((a, b) => a.test_date.localeCompare(b.test_date)),
+        latest: results.sort((a, b) => b.test_date.localeCompare(a.test_date))[0],
+      }))
+      .sort((a, b) => b.latest.test_date.localeCompare(a.latest.test_date));
+  }, [items]);
 
   return (
     <div className="px-4 py-5 space-y-4">
@@ -273,8 +317,22 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
         </form>
       )}
 
-      {/* Filtre catégorie */}
+      {/* Toggle vue */}
       {items.length > 0 && (
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+          <button onClick={() => setViewMode("date")}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === "date" ? "bg-white text-health-blue shadow-sm" : "text-gray-500"}`}>
+            📅 Par date
+          </button>
+          <button onClick={() => setViewMode("examen")}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === "examen" ? "bg-white text-health-blue shadow-sm" : "text-gray-500"}`}>
+            📈 Évolution
+          </button>
+        </div>
+      )}
+
+      {/* Filtre catégorie (vue par date seulement) */}
+      {items.length > 0 && viewMode === "date" && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
           {["all", ...CATEGORIES].map((cat) => (
             <button key={cat} onClick={() => setFilterCat(cat)}
@@ -298,7 +356,44 @@ export default function ResultatsLaboClient({ personId, gender, initialData }: P
         </div>
       )}
 
-      {groupedByDate.map(([date, results]) => (
+      {/* Vue évolution par examen */}
+      {viewMode === "examen" && groupedByTest.map(({ name, results, latest }) => {
+        const s = statusOf(latest);
+        const points = results.map(r => ({ date: r.test_date, value: r.value }));
+        return (
+          <div key={name} className={`card border-l-4 ${STATUS_BORDER[s]} space-y-2`}>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{name}</p>
+                <p className="text-xs text-gray-400">{results.length} mesure{results.length > 1 ? "s" : ""} · dernière : {fmt(latest.test_date)}</p>
+              </div>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[s]}`}>
+                {latest.value} {latest.unit}
+              </span>
+            </div>
+            {points.length >= 2 && (
+              <Sparkline
+                points={points}
+                refMin={latest.ref_min ?? null}
+                refMax={latest.ref_max ?? null}
+              />
+            )}
+            {points.length >= 2 && (
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>{fmt(results[0].test_date)}</span>
+                <span>{fmt(results[results.length - 1].test_date)}</span>
+              </div>
+            )}
+            {latest.ref_min != null && latest.ref_max != null && (
+              <p className="text-xs text-gray-400">
+                Zone normale : {latest.ref_min} – {latest.ref_max} {latest.unit}
+              </p>
+            )}
+          </div>
+        );
+      })}
+
+      {viewMode === "date" && groupedByDate.map(([date, results]) => (
         <div key={date} className="space-y-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{fmt(date)}</p>
           {results.map((r) => {
