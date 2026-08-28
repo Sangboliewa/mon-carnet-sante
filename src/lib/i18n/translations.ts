@@ -92,11 +92,11 @@ export const translations = {
   english: { fr: "Anglais", en: "English" },
 
   // By'
-  By'Subtitle: { fr: "Assistante Santé IA · en ligne", en: "AI Health Assistant · online" },
-  By'Welcome: { fr: "Je suis By', ton assistante santé personnelle. Je peux t'aider à comprendre tes examens, tes médicaments ou répondre à tes questions de santé.", en: "I am By', your personal health assistant. I can help you understand your exams, medications, or answer your health questions." },
-  By'Disclaimer: { fr: "⚕️ Je suis un outil éducatif, pas un médecin. Consulte toujours un professionnel de santé.", en: "⚕️ I am an educational tool, not a doctor. Always consult a healthcare professional." },
-  By'Placeholder: { fr: "Pose ta question à By'…", en: "Ask By' a question…" },
-  By'Footer: { fr: "By' ne remplace pas un médecin · Urgences :", en: "By' does not replace a doctor · Emergency:" },
+  "By'Subtitle": { fr: "Assistante Santé IA · en ligne", en: "AI Health Assistant · online" },
+  "By'Welcome": { fr: "Je suis By', ton assistante santé personnelle. Je peux t'aider à comprendre tes examens, tes médicaments ou répondre à tes questions de santé.", en: "I am By', your personal health assistant. I can help you understand your exams, medications, or answer your health questions." },
+  "By'Disclaimer": { fr: "⚕️ Je suis un outil éducatif, pas un médecin. Consulte toujours un professionnel de santé.", en: "⚕️ I am an educational tool, not a doctor. Always consult a healthcare professional." },
+  "By'Placeholder": { fr: "Pose ta question à By'…", en: "Ask By' a question…" },
+  "By'Footer": { fr: "By' ne remplace pas un médecin · Urgences :", en: "By' does not replace a doctor · Emergency:" },
   suggestions: { fr: "Suggestions", en: "Suggestions" },
 
   // Famille
